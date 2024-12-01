@@ -3,6 +3,16 @@
 #define MAX_LIST_LEN 1024
 #define MAX_VALUE    100000
 
+internal i32 day1_parse_number(u8* string) {
+    u8x8  digit_mask   = u8x8_splat(0x0F);
+    u32x4 digit_values = {10000, 1000, 100, 10};
+
+    u8x8  digits = u8x8_and(u8x8_load(string), digit_mask);
+    u32x4 hi_4   = u16x4_widen(u16x8_get_low(u8x8_widen(digits)));
+    u32   value  = u32x4_add_across(u32x4_mul(digit_values, hi_4));
+    return (i32)(value + u8x8_get_lane(digits, 4));
+}
+
 internal DayResult day1(Arena* arena, Str input) {
     i32* left_list    = arena_alloc_nz(arena, MAX_LIST_LEN * sizeof(i32));
     i32* right_list   = arena_alloc_nz(arena, MAX_LIST_LEN * sizeof(i32));
@@ -10,9 +20,6 @@ internal DayResult day1(Arena* arena, Str input) {
 
     u32 list_elem_count;
     {
-        u8x8  digit_mask   = u8x8_splat(0x0F);
-        u32x4 digit_values = {10000, 1000, 100, 10};
-
         u8* read     = (u8*)input.items;
         u8* read_end = read + input.count;
 
@@ -20,32 +27,21 @@ internal DayResult day1(Arena* arena, Str input) {
         i32* right_write = right_list;
 
         while (read < read_end) {
-            {
-                u8x8  digits   = u8x8_and(u8x8_load(read), digit_mask);
-                u32x4 hi_4     = u16x4_widen(u16x8_get_low(u8x8_widen(digits)));
-                u32   value    = u32x4_add_across(u32x4_mul(digit_values, hi_4));
-                value         += u8x8_get_lane(digits, 4);
-                *left_write++  = (i32)value;
-            }
-            read += 8;
-            {
-                u8x8  digits  = u8x8_and(u8x8_load(read), digit_mask);
-                u32x4 hi_4    = u16x4_widen(u16x8_get_low(u8x8_widen(digits)));
-                u32   value   = u32x4_add_across(u32x4_mul(digit_values, hi_4));
-                value        += u8x8_get_lane(digits, 4);
+            *left_write++  = day1_parse_number(read);
+            read          += 8;
 
-                right_counts[value]++;
+            i32 right      = day1_parse_number(read);
+            *right_write++ = right;
+            right_counts[right]++;
 
-                *right_write++ = (i32)value;
-            }
             read += 6;
         }
 
         list_elem_count = left_write - left_list;
     }
 
-    qsort(left_list, list_elem_count, sizeof(i32), (void*)sort_fn_i32_asc);
-    qsort(right_list, list_elem_count, sizeof(i32), (void*)sort_fn_i32_asc);
+    ArraySort(left_list, list_elem_count, sort_fn_i32_asc);
+    ArraySort(right_list, list_elem_count, sort_fn_i32_asc);
 
     i32 part1 = 0;
     {
@@ -54,7 +50,7 @@ internal DayResult day1(Arena* arena, Str input) {
 
         u32 chunks = list_elem_count / 4;
 
-        Assert(list_elem_count == chunks * 4);
+        DebugAssert(list_elem_count == chunks * 4);
 
         for (u32 i = 0; i < chunks; ++i) {
             i32x4 left  = i32x4_load(left_read);
