@@ -2,13 +2,12 @@
 cd "$(dirname "$0")"
 set -e
 
-DEBUG_BUILD=1
+#DEBUG_BUILD=1
 
 WARNINGS='
     -Wall
     -Werror
     -Wswitch-enum
-    -Wvla
     -Wno-unused-function
     -Wno-logical-op-parentheses
     -Wno-unused-variable
@@ -16,11 +15,17 @@ WARNINGS='
 '
 
 if [[ -n "$DEBUG_BUILD" ]]; then
-    OPTS='-g -O0 -DDEBUG=1'
+    OPTS='
+        -g
+        -O0
+        -DDEBUG=1
+        -fsanitize=undefined,unsigned-integer-overflow
+        -fno-omit-frame-pointer
+    '
 else
-    OPTS='-O3'
+    OPTS='-O3 -g'
 fi
 
 mkdir -p bin
 
-clang -std=c11 src/main.c $WARNINGS $OPTS -o bin/aoc2024
+clang -std=c11 src/*.s src/main.c $WARNINGS $OPTS -o bin/aoc2024
