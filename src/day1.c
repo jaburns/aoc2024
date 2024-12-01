@@ -4,16 +4,13 @@
 #define MAX_VALUE    100000
 
 internal DayResult day1(Arena* arena, Str input) {
-    i32* left_list    = (i32*)arena->cur;
-    i32* right_list   = left_list + MAX_LIST_LEN;
-    u16* right_counts = (u16*)(right_list + MAX_LIST_LEN);
-    u8*  mem_end      = (u8*)(right_counts + MAX_VALUE);
-
-    ZeroArray(arena->cur, mem_end - arena->cur);
+    i32* left_list    = arena_alloc_nz(arena, MAX_LIST_LEN * sizeof(i32));
+    i32* right_list   = arena_alloc_nz(arena, MAX_LIST_LEN * sizeof(i32));
+    u16* right_counts = arena_alloc(arena, MAX_VALUE * sizeof(u16));
 
     u32 list_elem_count;
     {
-        u8x8  digit_mask   = {0xf, 0xf, 0xf, 0xf, 0xf, 0, 0, 0};
+        u8x8  digit_mask   = u8x8_splat(0x0F);
         u32x4 digit_values = {10000, 1000, 100, 10};
 
         u8* read     = (u8*)input.items;
@@ -55,7 +52,10 @@ internal DayResult day1(Arena* arena, Str input) {
         i32* left_read  = left_list;
         i32* right_read = right_list;
 
-        u32 chunks = list_elem_count / 4 + 1;
+        u32 chunks = list_elem_count / 4;
+
+        Assert(list_elem_count == chunks * 4);
+
         for (u32 i = 0; i < chunks; ++i) {
             i32x4 left  = i32x4_load(left_read);
             i32x4 right = i32x4_load(right_read);

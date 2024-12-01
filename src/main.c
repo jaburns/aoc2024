@@ -3,13 +3,12 @@
 #include "../jaburns_c/base/inc.c"
 
 #include "day1.c"
-
 // defined in *.s
 DayResult day99(Arena* arena, Str input);
 
 #define DAY_NUMBER 1
 #define INPUT_TYPE "main"
-#define ITERATIONS 1
+#define ITERATIONS 10000
 
 #define DayFn(x)  Concatenate(day, x)
 #define DayStr(x) Stringify(x)
