@@ -1,13 +1,13 @@
 .section __TEXT,__text
 
 ; ======================================================================================================================
-; DayResult day1(Arena* arena, Str input);
+; DayResult day99(Arena* arena, Str input);
 ; x0 -> Arena*      arena
 ; x1 -> char*       input.items
 ; x2 -> size_t      input.count
 ; x8 -> DayResult*  result
-.global _day1
-_day1:
+.global _day99
+_day99:
         mov x0, #12345
     ; write result into the returned struct and return
         str xzr, [x8       ]  ; part[0].is_str

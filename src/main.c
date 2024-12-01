@@ -2,8 +2,10 @@
 
 #include "../jaburns_c/base/inc.c"
 
-DayResult day1(Arena* arena, Str input);  // defined in "day1.s"
-#include "day2.c"
+#include "day1.c"
+
+// defined in *.s
+DayResult day99(Arena* arena, Str input);
 
 #define DAY_NUMBER 1
 #define INPUT_TYPE "main"
