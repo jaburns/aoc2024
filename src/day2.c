@@ -1,5 +1,7 @@
 #include "main.h"
 
+#define BRUTE_FORCE 0
+
 #define MAX_ROWS    1024
 #define MAX_COLUMNS 8
 
@@ -33,7 +35,6 @@ internal DayResult day2(Arena* arena, Str input) {
                 cur_row++;
                 cur_idx = cur_row * MAX_COLUMNS;
 
-                // simd parse first 4 numbers if they're all 2 digits
                 u8x16 first_4 = u8x16_load((u8*)walk);
                 if (u8x16_max_across(u8x16_and(first_4, SPACES_MASK)) == ' ') {
                     u8x16 digits = u8x16_sub(first_4, u8x16_splat('0'));
@@ -54,6 +55,7 @@ internal DayResult day2(Arena* arena, Str input) {
     }
 
     u32 part1 = 0;
+    u32 part2 = 0;
     {
         i8x8 LENGTH_MASKS[9] = {
             {0, 0, 0, 0, 0, 0, 0, 0},
@@ -72,8 +74,9 @@ internal DayResult day2(Arena* arena, Str input) {
         for (u32 i = 0; i < row_count; ++i) {
             u8 len = *lens++;
 
-            i8x8 mask       = LENGTH_MASKS[len];
-            i8x8 row        = i8x8_load(walk);
+            i8x8 mask = LENGTH_MASKS[len];
+            i8x8 row  = i8x8_load(walk);
+
             i8x8 shifted    = i8x8_extract(row, i8x8_splat(0), 1);
             i8x8 diffs      = i8x8_and(mask, i8x8_sub(shifted, row));
             i8x8 first_diff = i8x8_splat(i8x8_get_lane(diffs, 0));
@@ -82,8 +85,53 @@ internal DayResult day2(Arena* arena, Str input) {
             i8 min = i8x8_min_across(extended);
             i8 max = i8x8_max_across(extended);
 
-            if (max <= -1 && min >= -3 || min >= 1 && max <= 3) {
+            if (min >= -3 && max <= -1 || min >= 1 && max <= 3) {
                 part1++;
+                part2++;
+                walk += 8;
+                continue;
+            }
+
+#if BRUTE_FORCE
+            u64 start_idx = 0;
+            u64 end_idx   = len;
+#else
+            i8x8 shifted_diffs = i8x8_extract(diffs, i8x8_splat(0), 1);
+            u8x8 sign_changes  = i8x8_less_than(i8x8_xor(shifted_diffs, diffs), i8x8_splat(0));
+            i8x8 abs_diff      = i8x8_abs(diffs);
+            u8x8 bad_diffs     = u8x8_or(i8x8_less_than(abs_diff, i8x8_splat(1)), i8x8_greater_than(abs_diff, i8x8_splat(3)));
+            u8x8 both_tests    = u8x8_or(sign_changes, bad_diffs);
+
+            u64 tests64 = (u64)both_tests;
+            if (!tests64) {
+                walk += 8;
+                continue;
+            }
+
+            u64 start_idx = u64_count_leading_zeroes(u64_bit_reverse(tests64)) / 8;
+            u64 end_idx   = start_idx + 3;
+            if (end_idx > len) end_idx = len;
+#endif
+
+            for (u32 j = start_idx; j < end_idx; ++j) {
+                i8x8 mask = LENGTH_MASKS[len - 1];
+
+                i8x8 after_cut = i8x8_extract(row, i8x8_splat(0), 1);
+                u8x8 cut_mask  = (u8x8)(0xFFFFFFFFFFFFFFFF << (j * 8));
+                i8x8 row1      = i8x8_select(cut_mask, after_cut, row);
+
+                i8x8 shifted    = i8x8_extract(row1, i8x8_splat(0), 1);
+                i8x8 diffs      = i8x8_and(mask, i8x8_sub(shifted, row1));
+                i8x8 first_diff = i8x8_splat(i8x8_get_lane(diffs, 0));
+                i8x8 extended   = i8x8_select(mask, diffs, first_diff);
+
+                i8 min = i8x8_min_across(extended);
+                i8 max = i8x8_max_across(extended);
+
+                if (max <= -1 && min >= -3 || min >= 1 && max <= 3) {
+                    part2++;
+                    break;
+                }
             }
 
             walk += 8;
@@ -92,6 +140,6 @@ internal DayResult day2(Arena* arena, Str input) {
 
     DayResult result       = {0};
     result.parts[0].as_i64 = part1;
-    result.parts[1].as_i64 = 0;
+    result.parts[1].as_i64 = part2;
     return result;
 }
