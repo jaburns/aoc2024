@@ -15,3 +15,8 @@ _day99:
         str xzr, [x8, #0x18]  ; part[1].is_str
         str x0,  [x8, #0x20]  ; part[1].as_u64
         ret
+
+.global _get_mach_time
+_get_mach_time:
+        mrs x0, CNTVCT_EL0
+        ret

@@ -45,9 +45,9 @@ i32 main(int argc, char** argv) {
     for (u32 i = 0; i < ITERATIONS; ++i) {
         ArenaMark mark = arena_mark(scratch.arena);
 
-        u64 start = timing_get_nanos_since_start();
+        u64 start = timing_get_ticks();
         result    = DayFn(DAY_NUMBER)(scratch.arena, input);
-        u64 delta = timing_get_nanos_since_start() - start;
+        u64 delta = timing_get_ticks() - start;
 
         total_time += delta;
 
@@ -57,7 +57,7 @@ i32 main(int argc, char** argv) {
     printf("\n");
     printf("-- DAY " DayStr(DAY_NUMBER) " --\n");
     printf("   Time: ");
-    print_time(scratch.arena, total_time / ITERATIONS);
+    print_time(scratch.arena, timing_ticks_to_nanos(total_time) / ITERATIONS);
     printf("\n");
     printf(" Part 1: ");
     print_result_part(&result.parts[0]);
