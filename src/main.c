@@ -6,11 +6,10 @@
 #include "day2.c"
 #include "day3.c"
 
-#define DAY_NUMBER 3
-#define INPUT_TYPE "main"
-#define ITERATIONS 100
-
-#define HIDE_SOLUTION 1
+#define DAY_NUMBER    3
+#define INPUT_TYPE    "main"
+#define ITERATIONS    100
+#define HIDE_SOLUTION 0
 
 #define DayFn(x)  Concatenate(day, x)
 #define DayStr(x) Stringify(x)
