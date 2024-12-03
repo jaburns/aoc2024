@@ -8,10 +8,10 @@
 #include "day4.c"
 
 #define DAY_NUMBER    4
-#define INPUT_TYPE    "test"
+#define INPUT_TYPE    "main"
 #define HIDE_SOLUTION 0
 #if DEBUG
-#define ITERATIONS 2
+#define ITERATIONS 1
 #else
 #define ITERATIONS 1000
 #endif
@@ -63,7 +63,7 @@ i32 main(int argc, char** argv) {
     printf("\n");
     printf("-- DAY " DayStr(DAY_NUMBER) " --\n");
     printf("   Time: ");
-    print_time(scratch.arena, timing_ticks_to_nanos(total_time) / (ITERATIONS / 2));
+    print_time(scratch.arena, timing_ticks_to_nanos(total_time) / (Max(1, ITERATIONS / 2)));
     printf("\n");
     printf(" Part 1: ");
 #if HIDE_SOLUTION
