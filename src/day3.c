@@ -6,6 +6,28 @@
 #define DAY3_CMD_DONT_MASK  0x0000FFFFFFFFFFFF
 #define DAY3_CMD_DO_VALUE   0x000000000029286F  // "o()"
 #define DAY3_CMD_DO_MASK    0x0000000000FFFFFF
+#define DAY3_CMD_MUL_VALUE  0x0000000000286C75  // "ul("
+#define DAY3_CMD_MUL_MASK   0x0000000000FFFFFF
+
+internal i32 day3_parse_number(u8** walk, char terminator) {
+    char ch = *(*walk)++;
+    if (!IsDigit(ch)) return -1;
+    i32 a = ch - '0';
+
+    ch = *(*walk)++;
+    if (ch == terminator) return a;
+    if (!IsDigit(ch)) return -1;
+    a = 10 * a + (ch - '0');
+
+    ch = *(*walk)++;
+    if (ch == terminator) return a;
+    if (!IsDigit(ch)) return -1;
+    a = 10 * a + (ch - '0');
+
+    ch = *(*walk)++;
+    if (ch != terminator) return -1;
+    return a;
+}
 
 internal DayResult day3(Arena* arena, Str input) {
     u64  part1   = 0;
@@ -48,49 +70,17 @@ internal DayResult day3(Arena* arena, Str input) {
         } else {
             walk += m_idx + 1;
 
-            if (*walk++ != 'u') continue;
-            if (*walk++ != 'l') continue;
-            if (*walk++ != '(') continue;
+            u64 word = *(u64*)walk;
+            if ((word & DAY3_CMD_MUL_MASK) != DAY3_CMD_MUL_VALUE) continue;
 
-            u32 a = 0, b = 0;
+            walk += 3;
 
-            char ch = *walk++;
-            if (!IsDigit(ch)) continue;
-            a = ch - '0';
+            i32 a = day3_parse_number(&walk, ',');
+            if (a < 0) continue;
+            i32 b = day3_parse_number(&walk, ')');
+            if (b < 0) continue;
 
-            ch = *walk++;
-            if (ch == ',') goto parse_b;
-            if (!IsDigit(ch)) continue;
-            a = 10 * a + (ch - '0');
-
-            ch = *walk++;
-            if (ch == ',') goto parse_b;
-            if (!IsDigit(ch)) continue;
-            a = 10 * a + (ch - '0');
-
-            if (*walk++ != ',') continue;
-
-        parse_b: {}
-
-            ch = *walk++;
-            if (!IsDigit(ch)) continue;
-            b = ch - '0';
-
-            ch = *walk++;
-            if (ch == ')') goto parse_c;
-            if (!IsDigit(ch)) continue;
-            b = 10 * b + (ch - '0');
-
-            ch = *walk++;
-            if (ch == ')') goto parse_c;
-            if (!IsDigit(ch)) continue;
-            b = 10 * b + (ch - '0');
-
-            if (*walk++ != ')') continue;
-
-        parse_c: {}
-
-            u64 product  = a * b;
+            i64 product  = a * b;
             part1       += product;
             if (enabled) part2 += product;
         }
