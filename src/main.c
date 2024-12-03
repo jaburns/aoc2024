@@ -50,7 +50,7 @@ i32 main(int argc, char** argv) {
         result    = DayFn(DAY_NUMBER)(scratch.arena, input);
         u64 delta = timing_get_ticks() - start;
 
-        if (i > ITERATIONS / 2) total_time += delta;
+        if (i >= ITERATIONS / 2) total_time += delta;
 
         arena_restore(scratch.arena, mark);
     }
