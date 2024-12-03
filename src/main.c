@@ -8,7 +8,7 @@
 
 #define DAY_NUMBER    3
 #define INPUT_TYPE    "main"
-#define ITERATIONS    100
+#define ITERATIONS    1000
 #define HIDE_SOLUTION 0
 
 #define DayFn(x)  Concatenate(day, x)

@@ -1,7 +1,5 @@
 #include "main.h"
 
-#define IsDigit(x) (x >= '0' && x <= '9')
-
 #define DAY3_CMD_DONT_VALUE 0x0000292874276E6F  // "on't()"
 #define DAY3_CMD_DONT_MASK  0x0000FFFFFFFFFFFF
 #define DAY3_CMD_DO_VALUE   0x000000000029286F  // "o()"
@@ -11,17 +9,17 @@
 
 internal i32 day3_parse_number(u8** walk, char terminator) {
     char ch = *(*walk)++;
-    if (!IsDigit(ch)) return -1;
+    if (ch < '0' || ch > '9') return -1;
     i32 a = ch - '0';
 
     ch = *(*walk)++;
     if (ch == terminator) return a;
-    if (!IsDigit(ch)) return -1;
+    if (ch < '0' || ch > '9') return -1;
     a = 10 * a + (ch - '0');
 
     ch = *(*walk)++;
     if (ch == terminator) return a;
-    if (!IsDigit(ch)) return -1;
+    if (ch < '0' || ch > '9') return -1;
     a = 10 * a + (ch - '0');
 
     ch = *(*walk)++;
@@ -96,5 +94,3 @@ internal DayResult day3(Arena* arena, Str input) {
     result.parts[1].as_i64 = part2;
     return result;
 }
-
-#undef IsDigit
