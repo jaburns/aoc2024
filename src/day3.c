@@ -58,8 +58,11 @@ internal DayResult day3(Arena* arena, Str input) {
         if (!has_d) d_idx |= 0x8000;
 
         if (d_idx < m_idx) {
-            walk     += d_idx + 1;
-            u64 word  = *(u64*)walk;
+            walk += d_idx + 1;
+
+            u64 word;
+            memcpy(&word, walk, sizeof(u64));
+
             if ((word & DAY3_CMD_DONT_MASK) == DAY3_CMD_DONT_VALUE) {
                 walk    += 6;
                 enabled  = false;
@@ -70,7 +73,9 @@ internal DayResult day3(Arena* arena, Str input) {
         } else {
             walk += m_idx + 1;
 
-            u64 word = *(u64*)walk;
+            u64 word;
+            memcpy(&word, walk, sizeof(u64));
+
             if ((word & DAY3_CMD_MUL_MASK) != DAY3_CMD_MUL_VALUE) continue;
 
             walk += 3;

@@ -19,6 +19,7 @@ if [[ -n "$DEBUG_BUILD" ]]; then
         -g
         -O0
         -DDEBUG=1
+        -fsanitize=undefined,unsigned-integer-overflow
         -fno-omit-frame-pointer
     '
 else
