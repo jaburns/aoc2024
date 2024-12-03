@@ -5,11 +5,16 @@
 #include "day1.c"
 #include "day2.c"
 #include "day3.c"
+#include "day4.c"
 
-#define DAY_NUMBER    3
-#define INPUT_TYPE    "main"
-#define ITERATIONS    1000
+#define DAY_NUMBER    4
+#define INPUT_TYPE    "test"
 #define HIDE_SOLUTION 0
+#if DEBUG
+#define ITERATIONS 2
+#else
+#define ITERATIONS 1000
+#endif
 
 #define DayFn(x)  Concatenate(day, x)
 #define DayStr(x) Stringify(x)
