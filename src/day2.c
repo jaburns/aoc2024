@@ -6,8 +6,8 @@
 #define MAX_COLUMNS 8
 
 internal DayResult day2(Arena* arena, Str input) {
-    u8* data      = arena_alloc(arena, MAX_COLUMNS * MAX_ROWS * sizeof(u8));
-    u8* lengths   = arena_alloc(arena, MAX_ROWS * sizeof(u8));
+    u8* data      = arena_alloc_nz(arena, MAX_COLUMNS * MAX_ROWS * sizeof(u8));
+    u8* lengths   = arena_alloc_nz(arena, MAX_ROWS * sizeof(u8));
     u32 row_count = 0;
 
     {

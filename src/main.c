@@ -4,10 +4,13 @@
 
 #include "day1.c"
 #include "day2.c"
+#include "day3.c"
 
-#define DAY_NUMBER 2
+#define DAY_NUMBER 3
 #define INPUT_TYPE "main"
-#define ITERATIONS 10000
+#define ITERATIONS 100
+
+#define HIDE_SOLUTION 1
 
 #define DayFn(x)  Concatenate(day, x)
 #define DayStr(x) Stringify(x)
@@ -59,10 +62,18 @@ i32 main(int argc, char** argv) {
     print_time(scratch.arena, timing_ticks_to_nanos(total_time) / (ITERATIONS / 2));
     printf("\n");
     printf(" Part 1: ");
+#if HIDE_SOLUTION
+    printf("[x]");
+#else
     print_result_part(&result.parts[0]);
+#endif
     printf("\n");
     printf(" Part 2: ");
+#if HIDE_SOLUTION
+    printf("[x]");
+#else
     print_result_part(&result.parts[1]);
+#endif
     printf("\n\n");
 
     return 0;
