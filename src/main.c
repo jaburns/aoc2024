@@ -4,9 +4,9 @@
 #include "../jaburns_c/base/inc.c"
 
 #define BIGBOY        0
-#define DAY_NUMBER    2
+#define DAY_NUMBER    4
 #define INPUT_TYPE    "main"
-#define HIDE_SOLUTION 0
+#define HIDE_SOLUTION 1
 
 #define ALLOCATION_SIZE (1 << 30)
 
@@ -23,6 +23,8 @@
 
 #define DayFn(x)  Concatenate(day, x)
 #define DayStr(x) Stringify(x)
+
+internal volatile i64 dump;
 
 internal void print_result_part(DayResultPart* part) {
     if (part->is_str) {
@@ -64,6 +66,9 @@ i32 main(int argc, char** argv) {
 
         arena_restore(&arena, mark);
     }
+
+    dump = result.parts[0].as_i64;
+    dump = result.parts[1].as_i64;
 
     printf("\n");
 #if BIGBOY
