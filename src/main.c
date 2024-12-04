@@ -6,7 +6,7 @@
 #define BIGBOY        0
 #define DAY_NUMBER    4
 #define INPUT_TYPE    "main"
-#define HIDE_SOLUTION 1
+#define HIDE_SOLUTION 0
 
 #define ALLOCATION_SIZE (1 << 30)
 
