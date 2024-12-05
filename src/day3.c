@@ -36,11 +36,11 @@ internal DayResult day3(Arena* arena, Str input) {
     u8* end  = walk + input.count;
     while (walk < end) {
         u8x16 chunk = u8x16_load(walk);
-        u8x16 eq_m  = u8x16_ceq(chunk, u8x16_dup('m'));
-        u8x16 eq_d  = u8x16_ceq(chunk, u8x16_dup('d'));
+        u8x16 eq_m  = u8x16_equal(chunk, u8x16_splat('m'));
+        u8x16 eq_d  = u8x16_equal(chunk, u8x16_splat('d'));
 
-        bool has_m = u8x16_maxv(eq_m);
-        bool has_d = u8x16_maxv(eq_d);
+        bool has_m = u8x16_max_across(eq_m);
+        bool has_d = u8x16_max_across(eq_d);
 
         if (!has_m && !has_d) {
             walk += 16;
