@@ -6,7 +6,8 @@
 
 internal void day5_quicksort(u8* arr, size_t len, i8* rules) {
     size_t  stack_base[2 * DAY5_MAX_UPDATE_LEN];
-    size_t* stack = stack_base;
+    size_t* stack   = stack_base;
+    size_t  halflen = len / 2;  // don't bother sorting the right half of the array
 
     *stack++ = 0;
     *stack++ = len - 1;
@@ -31,12 +32,13 @@ internal void day5_quicksort(u8* arr, size_t len, i8* rules) {
             Swap(u8, pivot[0], arr[i]);
         }
 
-        if (i > start + 1) {
+        if (i > start + 1 && start <= halflen) {
             *stack++ = start;
             *stack++ = i - 1;
         }
-        if (i + 1 < end) {
-            *stack++ = i + 1;
+        i++;
+        if (i < end && i <= halflen) {
+            *stack++ = i;
             *stack++ = end;
         }
     }
