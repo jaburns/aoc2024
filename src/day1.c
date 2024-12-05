@@ -7,7 +7,7 @@ structdef(ArrayWalker) {
     i32 value_copies;
 };
 
-#if BIGBOY
+#if BIGBOY_INPUTS
 
 #define NUMBER_WIDTH 8
 #define MAX_LIST_LEN 4000000

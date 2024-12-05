@@ -1,7 +1,15 @@
 #include "main.h"
 
+#if BIGBOY_INPUTS
+#define DAY4_WIDTH  10000
+#define DAY4_HEIGHT 10000
+#elif TEST_INPUTS
+#define DAY4_WIDTH  10
+#define DAY4_HEIGHT 10
+#else
 #define DAY4_WIDTH  140
 #define DAY4_HEIGHT 140
+#endif
 
 #define ROW_SIZE (DAY4_WIDTH + 1)
 #define XY(x, y) ((x) + (y) * ROW_SIZE)

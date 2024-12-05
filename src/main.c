@@ -3,14 +3,24 @@
 
 #include "../jaburns_c/base/inc.c"
 
-#define BIGBOY        0
-#define DAY_NUMBER    4
-#define INPUT_TYPE    "main"
-#define HIDE_SOLUTION 0
+// -------------------------------
+#define BIGBOY_INPUTS 0
+#define TEST_INPUTS   0
+#define DAY_NUMBER    5
+#define HIDE_SOLUTION 1
+// -------------------------------
+
+#if BIGBOY_INPUTS
+#define INPUT_TYPE "bigboy"
+#elif TEST_INPUTS
+#define INPUT_TYPE "test"
+#else
+#define INPUT_TYPE "main"
+#endif
 
 #define ALLOCATION_SIZE (1 << 30)
 
-#if DEBUG || BIGBOY
+#if DEBUG || BIGBOY_INPUTS
 #define ITERATIONS 1
 #else
 #define ITERATIONS 1000
@@ -20,6 +30,7 @@
 #include "day2.c"
 #include "day3.c"
 #include "day4.c"
+#include "day5.c"
 
 #define DayFn(x)  Concatenate(day, x)
 #define DayStr(x) Stringify(x)
@@ -71,7 +82,7 @@ i32 main(int argc, char** argv) {
     dump = result.parts[1].as_i64;
 
     printf("\n");
-#if BIGBOY
+#if BIGBOY_INPUTS
     printf("-- DAY " DayStr(DAY_NUMBER) " BIGBOY --\n");
 #else
     printf("-- DAY " DayStr(DAY_NUMBER) " --\n");
