@@ -4,8 +4,42 @@
 #define DAY5_MAX_PAGES      128
 #define DAY5_MAX_UPDATE_LEN 32
 
-internal i32 day5_comparator(i8* rules, u8* a, u8* b) {
-    return rules[*a * DAY5_MAX_PAGES + *b];
+internal void day5_quicksort(u8* arr, size_t len, i8* rules) {
+    size_t  stack_base[2 * DAY5_MAX_UPDATE_LEN];
+    size_t* stack = stack_base;
+
+    *stack++ = 0;
+    *stack++ = len - 1;
+
+    while (stack > stack_base) {
+        size_t end   = *--stack;
+        size_t start = *--stack;
+
+        u8*    pivot = arr + end;
+        size_t i     = start;
+        for (size_t j = start; j < end; j++) {
+            u8 a = arr[j];
+            u8 b = *pivot;
+            if (rules[a * DAY5_MAX_PAGES + b] < 0) {
+                if (i != j) {
+                    Swap(u8, arr[i], arr[j]);
+                }
+                i++;
+            }
+        }
+        if (i != end) {
+            Swap(u8, pivot[0], arr[i]);
+        }
+
+        if (i > start + 1) {
+            *stack++ = start;
+            *stack++ = i - 1;
+        }
+        if (i + 1 < end) {
+            *stack++ = i + 1;
+            *stack++ = end;
+        }
+    }
 }
 
 internal DayResult day5(Arena* arena, Str input) {
@@ -70,7 +104,7 @@ internal DayResult day5(Arena* arena, Str input) {
         continue;
 
     fail:
-        ArrayQuickSortCtx(update, len, rules, day5_comparator);
+        day5_quicksort(update, len, rules);
         part2 += update[len / 2];
     }
 
