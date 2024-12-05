@@ -7,7 +7,7 @@
 #define BIGBOY_INPUTS 0
 #define TEST_INPUTS   0
 #define DAY_NUMBER    5
-#define HIDE_SOLUTION 1
+#define HIDE_SOLUTION 0
 // -------------------------------
 
 #if BIGBOY_INPUTS
@@ -50,7 +50,7 @@ internal void print_time(Arena* arena, u64 nanos) {
     if (nanos > 1000000000) {
         nanos /= 1000000;
         units  = "ms";
-    } else if (nanos > 1000000) {
+    } else if (nanos >= 1000000) {
         nanos /= 1000;
         units  = "μs";
     }

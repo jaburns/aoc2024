@@ -4,16 +4,13 @@
 #define DAY5_MAX_PAGES      128
 #define DAY5_MAX_UPDATE_LEN 32
 
-internal i32 day5_comparator(void* rules_v, const void* a_v, const void* b_v) {
-    i8* rules = rules_v;
-    u8  a     = *(u8*)a_v;
-    u8  b     = *(u8*)b_v;
-    return rules[a * DAY5_MAX_PAGES + b];
+internal i32 day5_comparator(i8* rules, u8* a, u8* b) {
+    return rules[*a * DAY5_MAX_PAGES + *b];
 }
 
 internal DayResult day5(Arena* arena, Str input) {
     i8* rules   = arena_alloc(arena, DAY5_MAX_PAGES * DAY5_MAX_PAGES * sizeof(u8));
-    u8* updates = arena_alloc(arena, DAY5_MAX_UPDATE_LEN * DAY5_MAX_PAGES * sizeof(u8));
+    u8* updates = arena_alloc(arena, DAY5_MAX_UPDATE_LEN * DAY5_MAX_UPDATES * sizeof(u8));
 
     i64 part1 = 0;
     i64 part2 = 0;
@@ -73,7 +70,7 @@ internal DayResult day5(Arena* arena, Str input) {
         continue;
 
     fail:
-        qsort_r(update, len, sizeof(u8), rules, day5_comparator);
+        ArrayQuickSortCtx(update, len, rules, day5_comparator);
         part2 += update[len / 2];
     }
 
