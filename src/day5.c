@@ -59,7 +59,7 @@ internal DayResult day5(Arena* arena, Str input) {
         u8x16 rule_pair = u8x16_load(walk);
         u8x16 digits    = u8x16_and(rule_pair, u8x16_splat(0x0F));
         u8x16 placed    = u8x16_mul(digits, (u8x16){10, 1, 0, 10, 1, 0, 10, 1, 0, 10, 1, 0, 0, 0, 0, 0});
-        u8x16 added     = u8x16_add(placed, u8x16_extract(placed, u8x16_splat(0), 1));
+        u8x16 added     = u8x16_add(placed, u8x16_shift_lanes(placed, 1));
 
         u8 before0 = u8x16_get_lane(added, 0);
         u8 after0  = u8x16_get_lane(added, 3);
@@ -86,7 +86,7 @@ internal DayResult day5(Arena* arena, Str input) {
 
         u8x16 digits = u8x16_and(chunk, u8x16_splat(0x0F));
         u8x16 placed = u8x16_mul(digits, (u8x16){10, 1, 0, 10, 1, 0, 10, 1, 0, 10, 1, 0, 10, 1, 0, 0});
-        u8x16 added  = u8x16_add(placed, u8x16_extract(placed, u8x16_splat(0), 1));
+        u8x16 added  = u8x16_add(placed, u8x16_shift_lanes(placed, 1));
 
         *cur_update_write++ = u8x16_get_lane(added, 0);
         if (terminator_idx >= 3) *cur_update_write++ = u8x16_get_lane(added, 3);
