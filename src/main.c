@@ -4,7 +4,7 @@
 #include "../jaburns_c/base/inc.c"
 
 // -------------------------------
-#define BIGBOY_INPUTS 1
+#define BIGBOY_INPUTS 0
 #define TEST_INPUTS   0
 #define DAY_NUMBER    6
 #define HIDE_SOLUTION 0
@@ -24,7 +24,7 @@
 #if DEBUG || BIGBOY_INPUTS
 #define ITERATIONS 2
 #else
-#define ITERATIONS 1000
+#define ITERATIONS 100
 #endif
 
 #include "day1.c"

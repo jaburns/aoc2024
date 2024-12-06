@@ -24,56 +24,62 @@ structdef(Day6Visited) {
 };
 DefArrayTypes(Day6Visited);
 
+#define Day6ModeToDelta()                          \
+    do {                                           \
+        switch (mode) {                            \
+            case DAY6_UP: {                        \
+                if (gy == 0) goto end;             \
+                dx = 0;                            \
+                dy = -1;                           \
+                break;                             \
+            }                                      \
+            case DAY6_DOWN: {                      \
+                if (gy == DAY6_SIZE - 1) goto end; \
+                dx = 0;                            \
+                dy = 1;                            \
+                break;                             \
+            }                                      \
+            case DAY6_LEFT: {                      \
+                if (gx == 0) goto end;             \
+                dx = -1;                           \
+                dy = 0;                            \
+                break;                             \
+            }                                      \
+            case DAY6_RIGHT: {                     \
+                if (gx == DAY6_SIZE - 1) goto end; \
+                dx = 1;                            \
+                dy = 0;                            \
+                break;                             \
+            }                                      \
+        }                                          \
+    } while (0)
+
 internal i32 day6_check_loop(Vec_Day6Visited* visited, char* data, i32 gx, i32 gy, Day6Mode mode) {
     i32 ret = 0;
     mode    = (mode + 1) % 4;
 
-#define Walk(dx, dy)                                                                                  \
-    {                                                                                                 \
-        char* target = &data[gx + dx + (gy + dy) * DAY6_ROW];                                         \
-        if (*target == '#') {                                                                         \
-            char* current = &data[gx + gy * DAY6_ROW];                                                \
-            if (*current == mode) {                                                                   \
-                ret = 1;                                                                              \
-                goto end;                                                                             \
-            }                                                                                         \
-            if (*current > 3) {                                                                       \
-                *VecPushUnchecked(*visited) = (Day6Visited){.x = gx, .y = gy, .old_value = *current}; \
-                *current                    = mode;                                                   \
-            }                                                                                         \
-            mode = (mode + 1) % 4;                                                                    \
-            continue;                                                                                 \
-        }                                                                                             \
-        gx += dx;                                                                                     \
-        gy += dy;                                                                                     \
-    }
-
     for (;;) {
-        switch (mode) {
-            case DAY6_UP: {
-                if (gy == 0) goto end;
-                Walk(0, -1);
-                break;
-            }
-            case DAY6_DOWN: {
-                if (gy == DAY6_SIZE - 1) goto end;
-                Walk(0, 1);
-                break;
-            }
-            case DAY6_LEFT: {
-                if (gx == 0) goto end;
-                Walk(-1, 0);
-                break;
-            }
-            case DAY6_RIGHT: {
-                if (gx == DAY6_SIZE - 1) goto end;
-                Walk(1, 0);
-                break;
-            }
-        }
-    }
+        i32 dx, dy;
+        Day6ModeToDelta();
 
-#undef Walk
+        char* target = &data[gx + dx + (gy + dy) * DAY6_ROW];
+        if (*target == '#') {
+            char* current = &data[gx + gy * DAY6_ROW];
+            if (*current == mode) {
+                ret = 1;
+                goto end;
+            }
+            if (*current > 3) {
+                *VecPushUnchecked(*visited) = (Day6Visited){.x = gx, .y = gy, .old_value = *current};
+                *current                    = mode;
+            }
+            mode = (mode + 1) % 4;
+            continue;
+        }
+
+        gx += dx;
+        gy += dy;
+    }
 
 end:
     for (u32 i = 0; i < visited->count; ++i) {
@@ -117,51 +123,26 @@ internal DayResult day6(Arena* arena, Str input) {
     i64 part2     = day6_check_loop(&visited, data, gx, gy, mode);
     data[target0] = '.';
 
-#define Walk(dx, dy)                                                  \
-    {                                                                 \
-        char* target = &data[(gx + dx) + (gy + dy) * DAY6_ROW];       \
-        if (*target == '#') {                                         \
-            mode = (mode + 1) % 4;                                    \
-            continue;                                                 \
-        }                                                             \
-        if (*target == '.') {                                         \
-            *target  = '#';                                           \
-            part2   += day6_check_loop(&visited, data, gx, gy, mode); \
-            *target  = 'x';                                           \
-            part1++;                                                  \
-        }                                                             \
-        gx += dx;                                                     \
-        gy += dy;                                                     \
-    }
-
     for (;;) {
-        switch (mode) {
-            case DAY6_UP: {
-                if (gy == 0) goto done;
-                Walk(0, -1);
-                break;
-            }
-            case DAY6_DOWN: {
-                if (gy == DAY6_SIZE - 1) goto done;
-                Walk(0, 1);
-                break;
-            }
-            case DAY6_LEFT: {
-                if (gx == 0) goto done;
-                Walk(-1, 0);
-                break;
-            }
-            case DAY6_RIGHT: {
-                if (gx == DAY6_SIZE - 1) goto done;
-                Walk(1, 0);
-                break;
-            }
+        i32 dx, dy;
+        Day6ModeToDelta();
+
+        char* target = &data[(gx + dx) + (gy + dy) * DAY6_ROW];
+        if (*target == '#') {
+            mode = (mode + 1) % 4;
+            continue;
         }
+        if (*target == '.') {
+            *target  = '#';
+            part2   += day6_check_loop(&visited, data, gx, gy, mode);
+            *target  = 'x';
+            part1++;
+        }
+        gx += dx;
+        gy += dy;
     }
 
-#undef Walk
-
-done: {}
+end: {}
     DayResult result       = {0};
     result.parts[0].as_i64 = part1;
     result.parts[1].as_i64 = part2;
