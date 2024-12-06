@@ -85,19 +85,24 @@ internal DayResult day5(Arena* arena, Str input) {
         u64   terminator_idx = u8x16_nonzero_lane(u8x16_less_than(chunk, u8x16_splat('\n' + 1)));
 
         u8x16 digits = u8x16_and(chunk, u8x16_splat(0x0F));
-        u8x16 placed = u8x16_mul(digits, (u8x16){10, 1, 0, 10, 1, 0, 10, 1, 0, 10, 1, 0, 10, 1, 0, 0});
-        u8x16 added  = u8x16_add(placed, u8x16_shift_lanes(placed, 1));
+        u8x16 td     = u8x16_swizzle(digits, (u8x16){3, 4, 6, 7, 9, 10, 12, 13, 0, 1, 255, 255, 255, 255, 255, 255});
+        u8x16 placed = u8x16_mul(td, (u8x16){10, 1, 10, 1, 10, 1, 10, 1, 10, 1, 0, 0, 0, 0, 0, 0});
+        u8x16 added  = u8x16_add_pairs(placed, u8x16_splat(0));
 
-        *cur_update_write++ = u8x16_get_lane(added, 0);
-        if (terminator_idx >= 3) *cur_update_write++ = u8x16_get_lane(added, 3);
-        if (terminator_idx >= 6) *cur_update_write++ = u8x16_get_lane(added, 6);
-        if (terminator_idx >= 9) *cur_update_write++ = u8x16_get_lane(added, 9);
-        if (terminator_idx >= 12) *cur_update_write++ = u8x16_get_lane(added, 12);
+        *cur_update_write++ = u8x16_get_lane(added, 4);
 
         if (terminator_idx >= 15) {
+            memcpy(cur_update_write, &added, 4);
+            cur_update_write += 4;
+
             walk += 15;
             continue;
         }
+
+        if (terminator_idx >= 3) *cur_update_write++ = u8x16_get_lane(added, 0);
+        if (terminator_idx >= 6) *cur_update_write++ = u8x16_get_lane(added, 1);
+        if (terminator_idx >= 9) *cur_update_write++ = u8x16_get_lane(added, 2);
+        if (terminator_idx >= 12) *cur_update_write++ = u8x16_get_lane(added, 3);
 
         walk += terminator_idx + 1;
 
