@@ -4,6 +4,9 @@
 #define DAY5_MAX_PAGES      128
 #define DAY5_MAX_UPDATE_LEN 32
 
+//  Part 1: 7307
+//  Part 2: 4713
+
 internal void day5_quicksort(u8* arr, size_t len, i8* rules) {
     size_t  stack_base[2 * DAY5_MAX_UPDATE_LEN];
     size_t* stack   = stack_base;
@@ -54,17 +57,24 @@ internal DayResult day5(Arena* arena, Str input) {
     u8* walk      = (u8*)input.items;
     u8* input_end = walk + input.count;
 
+    // assumes an even number of page rules
     while (*walk != '\n') {
-        u8x8 pair          = u8x8_load(walk);
-        u8x8 before_digits = u8x8_and(pair, (u8x8){0x0F, 0x0F, 0, 0, 0, 0, 0, 0});
-        u8x8 after_digits  = u8x8_and(pair, (u8x8){0, 0, 0, 0x0F, 0x0F, 0, 0, 0});
-        u8   before        = 10 * u8x8_get_lane(before_digits, 0) + u8x8_get_lane(before_digits, 1);
-        u8   after         = 10 * u8x8_get_lane(after_digits, 3) + u8x8_get_lane(after_digits, 4);
+        u8x16 rule_pair = u8x16_load(walk);
+        u8x16 digits    = u8x16_and(rule_pair, u8x16_splat(0x0F));
+        u8x16 placed    = u8x16_mul(digits, (u8x16){10, 1, 0, 10, 1, 0, 10, 1, 0, 10, 1, 0, 0, 0, 0, 0});
+        u8x16 added     = u8x16_add(placed, u8x16_extract(placed, u8x16_splat(0), 1));
 
-        rules[before * DAY5_MAX_PAGES + after] = 1;
-        rules[after * DAY5_MAX_PAGES + before] = -1;
+        u8 before0 = u8x16_get_lane(added, 0);
+        u8 after0  = u8x16_get_lane(added, 3);
+        u8 before1 = u8x16_get_lane(added, 6);
+        u8 after1  = u8x16_get_lane(added, 9);
 
-        walk += 6;
+        rules[before0 * DAY5_MAX_PAGES + after0] = 1;
+        rules[after0 * DAY5_MAX_PAGES + before0] = -1;
+        rules[before1 * DAY5_MAX_PAGES + after1] = 1;
+        rules[after1 * DAY5_MAX_PAGES + before1] = -1;
+
+        walk += 12;
     }
 
     walk++;
@@ -74,17 +84,37 @@ internal DayResult day5(Arena* arena, Str input) {
     u8* cur_update_write_len   = updates;
 
     while (walk < input_end) {
-        u8 value            = (walk[0] & 0x0F) * 10 + (walk[1] & 0x0F);
-        *cur_update_write++ = value;
+        u8x16 chunk          = u8x16_load(walk);
+        u8    any_terminator = u8x16_max_across(u8x16_less_than(chunk, u8x16_splat('\n' + 1)));
 
-        walk += 2;
-        if (*walk != ',') {
-            *cur_update_write_len   = cur_update_write - cur_update_write_start;
-            cur_update_write_start += DAY5_MAX_UPDATE_LEN;
-            cur_update_write_len   += DAY5_MAX_UPDATE_LEN;
-            cur_update_write        = cur_update_write_start;
+        if (!any_terminator) {
+            u8x16 digits = u8x16_and(chunk, u8x16_splat(0x0F));
+            u8x16 placed = u8x16_mul(digits, (u8x16){10, 1, 0, 10, 1, 0, 10, 1, 0, 10, 1, 0, 10, 1, 0, 0});
+            u8x16 added  = u8x16_add(placed, u8x16_extract(placed, u8x16_splat(0), 1));
+
+            *cur_update_write++ = u8x16_get_lane(added, 0);
+            *cur_update_write++ = u8x16_get_lane(added, 3);
+            *cur_update_write++ = u8x16_get_lane(added, 6);
+            *cur_update_write++ = u8x16_get_lane(added, 9);
+            *cur_update_write++ = u8x16_get_lane(added, 12);
+
+            walk += 15;
+            continue;
         }
-        walk++;
+
+        for (;;) {
+            u8 value            = (walk[0] & 0x0F) * 10 + (walk[1] & 0x0F);
+            *cur_update_write++ = value;
+
+            walk += 3;
+            if (*(walk - 1) != ',') {
+                *cur_update_write_len   = cur_update_write - cur_update_write_start;
+                cur_update_write_start += DAY5_MAX_UPDATE_LEN;
+                cur_update_write_len   += DAY5_MAX_UPDATE_LEN;
+                cur_update_write        = cur_update_write_start;
+                break;
+            }
+        }
     }
 
     u32 total_updates = (cur_update_write_start - updates) / DAY5_MAX_UPDATE_LEN;

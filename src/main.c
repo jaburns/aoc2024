@@ -35,8 +35,6 @@
 #define DayFn(x)  Concatenate(day, x)
 #define DayStr(x) Stringify(x)
 
-internal volatile i64 dump;
-
 internal void print_result_part(DayResultPart* part) {
     if (part->is_str) {
         printf("%.*s", StrPrintfArgs(part->as_str));
@@ -59,6 +57,8 @@ internal void print_time(Arena* arena, u64 nanos) {
 
 i32 main(int argc, char** argv) {
     scratch_thread_local_create(&GLOBAL_ALLOCATOR);
+    ArenaTemp scratch = scratch_acquire(NULL, 0);
+
     timing_global_init();
     Arena arena = arena_create(&GLOBAL_ALLOCATOR, ALLOCATION_SIZE);
 
@@ -73,13 +73,15 @@ i32 main(int argc, char** argv) {
         result    = DayFn(DAY_NUMBER)(&arena, input);
         u64 delta = timing_get_ticks() - start;
 
+        if (i == 0) {
+            if (result.parts[0].is_str) result.parts[0].as_str = str_copy(scratch.arena, result.parts[0].as_str);
+            if (result.parts[1].is_str) result.parts[1].as_str = str_copy(scratch.arena, result.parts[1].as_str);
+        }
+
         if (i >= ITERATIONS / 2) total_time += delta;
 
         arena_restore(&arena, mark);
     }
-
-    dump = result.parts[0].as_i64;
-    dump = result.parts[1].as_i64;
 
     printf("\n");
 #if BIGBOY_INPUTS
