@@ -91,9 +91,6 @@ internal DayResult day6(Arena* arena, Str input) {
     Vec_Day6Visited visited = VecAlloc(Day6Visited, arena, Kb(32));
     memcpy(data, input.items, input.count);
 
-    i64 part1 = 0;
-    i64 part2 = 0;
-
     i32 gx = 0, gy = 0;
     {
         char* walk = data;
@@ -110,14 +107,14 @@ internal DayResult day6(Arena* arena, Str input) {
     found_start: {}
     }
 
-    i32      part1 = 1;
+    i64      part1 = 1;
     Day6Mode mode  = DAY6_UP;
 
     data[gx + gy * DAY6_ROW] = 'x';
 
     u32 target0   = gx + (gy - 1) * DAY6_ROW;
     data[target0] = '#';
-    i32 part2     = day6_check_loop(&visited, data, gx, gy, mode);
+    i64 part2     = day6_check_loop(&visited, data, gx, gy, mode);
     data[target0] = '.';
 
 #define Walk(dx, dy)                                                  \

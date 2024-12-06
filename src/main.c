@@ -22,9 +22,9 @@
 #endif
 
 #if DEBUG || BIGBOY_INPUTS
-#define ITERATIONS 4
+#define ITERATIONS 2
 #else
-#define ITERATIONS 1
+#define ITERATIONS 1000
 #endif
 
 #include "day1.c"
