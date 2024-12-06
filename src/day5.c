@@ -1,10 +1,18 @@
 #include "main.h"
 
-#define DAY5_MAX_UPDATES    512
+#if BIGBOY_INPUTS
+#define DAY5_MAX_UPDATES    500000LLU
+#define DAY5_MAX_PAGES      16384LLU
+#define DAY5_MAX_UPDATE_LEN 8192LLU
+typedef u16 Day5Int;
+#else
 #define DAY5_MAX_PAGES      128
+#define DAY5_MAX_UPDATES    512
 #define DAY5_MAX_UPDATE_LEN 32
+typedef u8 Day5Int;
+#endif
 
-internal void day5_quicksort(u8* arr, size_t len, i8* rules) {
+internal void day5_quicksort(Day5Int* arr, size_t len, i8* rules) {
     size_t  stack_base[2 * DAY5_MAX_UPDATE_LEN];
     size_t* stack   = stack_base;
     size_t  halflen = len / 2;  // don't bother sorting the right half of the array
@@ -16,20 +24,20 @@ internal void day5_quicksort(u8* arr, size_t len, i8* rules) {
         size_t end   = *--stack;
         size_t start = *--stack;
 
-        u8*    pivot = arr + end;
-        size_t i     = start;
+        Day5Int* pivot = arr + end;
+        size_t   i     = start;
         for (size_t j = start; j < end; j++) {
-            u8 a = arr[j];
-            u8 b = *pivot;
+            Day5Int a = arr[j];
+            Day5Int b = *pivot;
             if (rules[a * DAY5_MAX_PAGES + b] < 0) {
                 if (i != j) {
-                    Swap(u8, arr[i], arr[j]);
+                    Swap(Day5Int, arr[i], arr[j]);
                 }
                 i++;
             }
         }
         if (i != end) {
-            Swap(u8, pivot[0], arr[i]);
+            Swap(Day5Int, pivot[0], arr[i]);
         }
 
         if (i > start + 1 && start <= halflen) {
@@ -45,14 +53,60 @@ internal void day5_quicksort(u8* arr, size_t len, i8* rules) {
 }
 
 internal DayResult day5(Arena* arena, Str input) {
-    i8* rules   = arena_alloc(arena, DAY5_MAX_PAGES * DAY5_MAX_PAGES * sizeof(u8));
-    u8* updates = arena_alloc(arena, DAY5_MAX_UPDATE_LEN * DAY5_MAX_UPDATES * sizeof(u8));
+    i8*      rules   = arena_alloc(arena, DAY5_MAX_PAGES * DAY5_MAX_PAGES * sizeof(u8));
+    Day5Int* updates = arena_alloc(arena, DAY5_MAX_UPDATE_LEN * DAY5_MAX_UPDATES * sizeof(u16));
 
     i64 part1 = 0;
     i64 part2 = 0;
 
     u8* walk      = (u8*)input.items;
     u8* input_end = walk + input.count;
+
+#if BIGBOY_INPUTS  // ===================================================================================================
+
+    while (*walk != '\n') {
+        u8x8 chunk0 = u8x8_load(walk);
+        walk++;
+        u8x8 chunk1  = u8x8_load(walk);
+        walk        += 9;
+
+        u16x8 digits = u8x8_widen(u8x8_or(
+            u8x8_and(chunk0, (u8x8){0x0F, 0x0F, 0x0F, 0x0F, 0, 0, 0, 0}),
+            u8x8_and(chunk1, (u8x8){0, 0, 0, 0, 0x0F, 0x0F, 0x0F, 0x0F})
+        ));
+
+        u16x8 placed = u16x8_mul(digits, (u16x8){1000, 100, 10, 1, 1000, 100, 10, 1});
+        u16   before = u16x4_add_across(u16x8_get_low(placed));
+        u16   after  = u16x4_add_across(u16x8_get_high(placed));
+
+        rules[before * DAY5_MAX_PAGES + after] = 1;
+        rules[after * DAY5_MAX_PAGES + before] = -1;
+    }
+
+    walk++;
+
+    u16* cur_update_write       = updates + 1;
+    u16* cur_update_write_start = updates + 1;
+    u16* cur_update_write_len   = updates;
+
+    while (walk < input_end) {
+        u8x8  chunk  = u8x8_load(walk);
+        u16x8 digits = u8x8_widen(u8x8_and(chunk, (u8x8){0x0F, 0x0F, 0x0F, 0x0F, 0, 0, 0, 0}));
+        u16   value  = u16x4_add_across(u16x4_mul(u16x8_get_low(digits), (u16x4){1000, 100, 10, 1}));
+
+        *cur_update_write++ = value;
+
+        walk += 4;
+        if (*walk != ',') {
+            *cur_update_write_len   = cur_update_write - cur_update_write_start;
+            cur_update_write_start += DAY5_MAX_UPDATE_LEN;
+            cur_update_write_len   += DAY5_MAX_UPDATE_LEN;
+            cur_update_write        = cur_update_write_start;
+        }
+        walk++;
+    }
+
+#else  // NOT BIGBOY_INPUTS =============================================================================================
 
     // assumes an even number of page rules
     while (*walk != '\n') {
@@ -112,17 +166,19 @@ internal DayResult day5(Arena* arena, Str input) {
         cur_update_write        = cur_update_write_start;
     }
 
-    u32 total_updates = (cur_update_write_start - updates) / DAY5_MAX_UPDATE_LEN;
+#endif  // BIGBOY_INPUTS ================================================================================================
 
-    for (u32 i = 0; i < total_updates; ++i) {
-        u8* update = updates + DAY5_MAX_UPDATE_LEN * i;
-        u8  len    = *update++;
+    u64 total_updates = (cur_update_write_start - updates) / DAY5_MAX_UPDATE_LEN;
+
+    for (u64 i = 0; i < total_updates; ++i) {
+        Day5Int* update = updates + DAY5_MAX_UPDATE_LEN * i;
+        Day5Int  len    = *update++;
 
         for (u32 j = 0; j < len - 1; ++j) {
             for (u32 k = j + 1; k < len; ++k) {
-                u8 before = update[j];
-                u8 after  = update[k];
-                i8 check  = rules[before * DAY5_MAX_PAGES + after];
+                Day5Int before = update[j];
+                Day5Int after  = update[k];
+                i8      check  = rules[before * DAY5_MAX_PAGES + after];
                 if (check < 0) goto fail;
             }
         }

@@ -7,18 +7,19 @@
 #define BIGBOY_INPUTS 0
 #define TEST_INPUTS   0
 #define DAY_NUMBER    6
-#define HIDE_SOLUTION 1
+#define HIDE_SOLUTION 0
 // -------------------------------
 
 #if BIGBOY_INPUTS
-#define INPUT_TYPE "bigboy"
+#define ALLOCATION_SIZE Gb(8)
+#define INPUT_TYPE      "bigboy"
 #elif TEST_INPUTS
-#define INPUT_TYPE "test"
+#define ALLOCATION_SIZE Mb(128)
+#define INPUT_TYPE      "test"
 #else
-#define INPUT_TYPE "main"
+#define ALLOCATION_SIZE Mb(128)
+#define INPUT_TYPE      "main"
 #endif
-
-#define ALLOCATION_SIZE (1 << 30)
 
 #if DEBUG || BIGBOY_INPUTS
 #define ITERATIONS 1
@@ -46,10 +47,10 @@ internal void print_result_part(DayResultPart* part) {
 
 internal void print_time(Arena* arena, u64 nanos) {
     char* units = "ns";
-    if (nanos > 1000000000) {
+    if (nanos > 100000000) {
         nanos /= 1000000;
         units  = "ms";
-    } else if (nanos >= 1000000) {
+    } else if (nanos >= 100000) {
         nanos /= 1000;
         units  = "μs";
     }

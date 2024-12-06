@@ -1,8 +1,8 @@
 #include "main.h"
 
 #if BIGBOY_INPUTS
-#define DAY4_WIDTH  10000
-#define DAY4_HEIGHT 10000
+#define DAY4_WIDTH  15000
+#define DAY4_HEIGHT 15000
 #elif TEST_INPUTS
 #define DAY4_WIDTH  10
 #define DAY4_HEIGHT 10
