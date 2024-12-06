@@ -6,8 +6,8 @@
 // -------------------------------
 #define BIGBOY_INPUTS 0
 #define TEST_INPUTS   0
-#define DAY_NUMBER    5
-#define HIDE_SOLUTION 0
+#define DAY_NUMBER    6
+#define HIDE_SOLUTION 1
 // -------------------------------
 
 #if BIGBOY_INPUTS
@@ -31,6 +31,7 @@
 #include "day3.c"
 #include "day4.c"
 #include "day5.c"
+#include "day6.c"
 
 #define DayFn(x)  Concatenate(day, x)
 #define DayStr(x) Stringify(x)
