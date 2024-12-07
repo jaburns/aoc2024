@@ -3,30 +3,107 @@
 #define DAY6_ENTRIES_CAPACITY     1024
 #define DAY6_ENTRY_ITEMS_CAPACITY 32
 
+enumdef(Day7Op, u8){
+    DAY7_PLUS,
+    DAY7_TIMES,
+    DAY7_CONCAT,
+};
+
 structdef(Day7Entry) {
     u64     total;
     Vec_u16 items;
-    u32     permutations;
 };
 DefArrayTypes(Day7Entry);
 
-internal bool day7_eval_permutation(Day7Entry* entry, u32 perm) {
+readonly_global u64 DAY7_TENS[20] = {
+    1ULL,
+    10ULL,
+    100ULL,
+    1000ULL,
+    10000ULL,
+    100000ULL,
+    1000000ULL,
+    10000000ULL,
+    100000000ULL,
+    1000000000ULL,
+    10000000000ULL,
+    100000000000ULL,
+    1000000000000ULL,
+    10000000000000ULL,
+    100000000000000ULL,
+    1000000000000000ULL,
+    10000000000000000ULL,
+    100000000000000000ULL,
+    1000000000000000000ULL,
+    10000000000000000000ULL,
+};
+
+internal u32 day7_count_decimal_digits(u64 b) {
+    u32 digits = 0;
+    while (b > 0) {
+        b /= 10;
+        digits++;
+    }
+    return digits;
+}
+
+internal u64 day7_op_exec(Day7Op op, u64 a, u64 b) {
+    switch (op) {
+        case DAY7_PLUS: {
+            return a + b;
+        }
+        case DAY7_TIMES: {
+            return a * b;
+        }
+        case DAY7_CONCAT: {
+            return a * DAY7_TENS[day7_count_decimal_digits(b)] + b;
+        }
+    }
+    return 0;
+}
+
+internal void day7_next_perm(Day7Op perm[], u32 base) {
+    base--;
+    for (u32 i = 0; i < DAY6_ENTRY_ITEMS_CAPACITY; ++i) {
+        if (perm[i] < base) {
+            perm[i]++;
+            return;
+        }
+        perm[i] = 0;
+    }
+}
+
+internal bool day7_eval_permutation(Day7Entry* entry, Day7Op perm[]) {
     u64 number = entry->items.items[0];
     for (u32 i = 1; i < entry->items.count; ++i) {
-        if (perm & 1) {
-            number += entry->items.items[i];
-        } else {
-            number *= entry->items.items[i];
-        }
-        perm >>= 1;
+        number = day7_op_exec(perm[i - 1], number, entry->items.items[i]);
     }
     return number == entry->total;
 }
 
-internal DayResult day7(Arena* arena, Str input) {
-    i64 part1 = 0;
-    i64 part2 = 0;
+internal u64 day7_count_matches(Slice_Day7Entry entries, u32 base) {
+    u64 result = 0;
 
+    for (u32 i = 0; i < entries.count; ++i) {
+        Day7Entry* entry = &entries.items[i];
+
+        u64 perms = (u64)pow(base, entry->items.count - 1);
+
+        Day7Op perm[DAY6_ENTRY_ITEMS_CAPACITY] = {0};
+
+        for (u32 j = 0; j < perms; ++j) {
+            if (day7_eval_permutation(entry, perm)) {
+                result += entry->total;
+                break;
+            }
+            day7_next_perm(perm, base);
+        }
+    }
+
+    return result;
+}
+
+internal DayResult day7(Arena* arena, Str input) {
     Vec_Day7Entry entries = VecAlloc(Day7Entry, arena, DAY6_ENTRIES_CAPACITY);
 
     foreach (StrSplitIter, lines, '\n', input) {
@@ -44,21 +121,11 @@ internal DayResult day7(Arena* arena, Str input) {
             *VecPush(entry.items) = str_parse_u32(num.item, 10);
         }
 
-        entry.permutations = 1 << (entry.items.count - 1);
-
         *VecPush(entries) = entry;
     }
 
-    for (u32 i = 0; i < entries.count; ++i) {
-        Day7Entry* entry = &entries.items[i];
-
-        for (u32 j = 0; j < entry->permutations; ++j) {
-            if (day7_eval_permutation(entry, j)) {
-                part1 += entry->total;
-                break;
-            }
-        }
-    }
+    i64 part1 = day7_count_matches(entries.slice, 2);
+    i64 part2 = day7_count_matches(entries.slice, 3);
 
     DayResult result       = {0};
     result.parts[0].as_i64 = part1;

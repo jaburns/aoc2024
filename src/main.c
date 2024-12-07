@@ -1,4 +1,3 @@
-
 #include "main.h"
 
 #include "../jaburns_c/base/inc.c"
@@ -24,7 +23,7 @@
 #if DEBUG || BIGBOY_INPUTS
 #define ITERATIONS 2
 #else
-#define ITERATIONS 100
+#define ITERATIONS 10
 #endif
 
 #include "day1.c"
