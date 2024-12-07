@@ -50,10 +50,10 @@ internal u32 day7_count_decimal_digits(u64 b) {
 internal u64 day7_op_exec(Day7Op op, u64 a, u64 b) {
     switch (op) {
         case DAY7_PLUS: {
-            return a + b;
+            return b == 1 ? a : a + b;  // multiply/add are swapped when b = 1
         }
         case DAY7_TIMES: {
-            return a * b;
+            return b == 1 ? a + 1 : a * b;
         }
         case DAY7_CONCAT: {
             return a * DAY7_TENS[day7_count_decimal_digits(b)] + b;
@@ -62,14 +62,11 @@ internal u64 day7_op_exec(Day7Op op, u64 a, u64 b) {
     return 0;
 }
 
-internal void day7_next_perm(Day7Op perm[], u32 base) {
-    base--;
-    for (u32 i = 0; i < DAY6_ENTRY_ITEMS_CAPACITY; ++i) {
-        if (perm[i] < base) {
-            perm[i]++;
-            return;
-        }
-        perm[i] = 0;
+internal void day7_perm_from_idx(Day7Op out_perm[], u32 base, u32 idx, u32 entry_item_count) {
+    u32 i = entry_item_count - 1;
+    while (i-- > 0) {
+        out_perm[i]  = idx % base;
+        idx         /= base;
     }
 }
 
@@ -92,11 +89,11 @@ internal u64 day7_count_matches(Slice_Day7Entry entries, u32 base) {
         Day7Op perm[DAY6_ENTRY_ITEMS_CAPACITY] = {0};
 
         for (u32 j = 0; j < perms; ++j) {
+            day7_perm_from_idx(perm, base, j, entry->items.count);
             if (day7_eval_permutation(entry, perm)) {
                 result += entry->total;
                 break;
             }
-            day7_next_perm(perm, base);
         }
     }
 
