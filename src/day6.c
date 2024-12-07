@@ -1,7 +1,7 @@
 #include "main.h"
 
 #if BIGBOY_INPUTS
-#define DAY6_SIZE 32768
+#define DAY6_SIZE 4096
 #elif TEST_INPUTS
 #define DAY6_SIZE 10
 #else
