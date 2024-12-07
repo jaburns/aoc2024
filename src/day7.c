@@ -15,12 +15,6 @@ structdef(Day7Entry) {
 };
 DefArrayTypes(Day7Entry);
 
-structdef(Day7Perm) {
-    u64    error;
-    Day7Op ops[DAY6_ENTRY_ITEMS_CAPACITY];
-};
-DefArrayTypes(Day7Perm);
-
 readonly_global u64 DAY7_TENS[20] = {
     1ULL,
     10ULL,
@@ -56,10 +50,10 @@ internal u32 day7_count_decimal_digits(u64 b) {
 internal u64 day7_op_exec(Day7Op op, u64 a, u64 b) {
     switch (op) {
         case DAY7_PLUS: {
-            return b == 1 ? a : a + b;  // multiply/add are swapped when b = 1
+            return a + b;
         }
         case DAY7_TIMES: {
-            return b == 1 ? a + 1 : a * b;
+            return a * b;
         }
         case DAY7_CONCAT: {
             return a * DAY7_TENS[day7_count_decimal_digits(b)] + b;
@@ -68,66 +62,44 @@ internal u64 day7_op_exec(Day7Op op, u64 a, u64 b) {
     return 0;
 }
 
-internal u64 day7_eval_perm(Day7Entry* entry, Day7Perm* perm) {
-    u64 number = entry->items.items[0];
-    for (u32 i = 1; i < entry->items.count; ++i) {
-        number = day7_op_exec(perm->ops[i - 1], number, entry->items.items[i]);
+internal void day7_next_perm(Day7Op perm[], u32 base) {
+    base--;
+    for (u32 i = 0; i < DAY6_ENTRY_ITEMS_CAPACITY; ++i) {
+        if (perm[i] < base) {
+            perm[i]++;
+            return;
+        }
+        perm[i] = 0;
     }
-    return number;
 }
 
-internal u64 day7_count_matches(Arena* arena, Slice_Day7Entry entries, u32 base) {
-    u64          result     = 0;
-    ArenaMark    mark       = arena_mark(arena);
-    Vec_Day7Perm perm_stack = VecAlloc(Day7Perm, arena, Kb(32));
+internal bool day7_eval_permutation(Day7Entry* entry, Day7Op perm[]) {
+    u64 number = entry->items.items[0];
+    for (u32 i = 1; i < entry->items.count; ++i) {
+        number = day7_op_exec(perm[i - 1], number, entry->items.items[i]);
+    }
+    return number == entry->total;
+}
+
+internal u64 day7_count_matches(Slice_Day7Entry entries, u32 base) {
+    u64 result = 0;
 
     for (u32 i = 0; i < entries.count; ++i) {
-        Dbg(i);
-        perm_stack.count = 0;
-
         Day7Entry* entry = &entries.items[i];
-        Day7Perm   perm0 = (Day7Perm){0};
-        u64        test  = day7_eval_perm(entry, &perm0);
-        i64        delta = (i64)test - (i64)entry->total;
-        perm0.error      = (u64)Abs(delta);
 
-        if (test == entry->total) {
-            result += entry->total;
-            Dbg("success");
-            continue;
-        }
+        u64 perms = (u64)pow(base, entry->items.count - 1);
 
-        VecMinHeapPush(Day7Perm, perm_stack, .error, perm0);
+        Day7Op perm[DAY6_ENTRY_ITEMS_CAPACITY] = {0};
 
-        while (perm_stack.count > 0) {
-            Day7Perm perm;
-            VecMinHeapPopInto(Day7Perm, perm_stack, .error, perm);
-
-            for (u32 j = 0; j < entry->items.count - 1; ++j) {
-                if (perm.ops[j] == base - 1) continue;
-
-                Day7Perm copy = perm;
-                copy.ops[j]++;
-                test = day7_eval_perm(entry, &copy);
-
-                if (test == entry->total) {
-                    result += entry->total;
-                    Dbg("success");
-                    goto next;
-                } else if (test < entry->total) {
-                    i64 delta  = (i64)test - (i64)entry->total;
-                    copy.error = (u64)Abs(delta);
-                    VecMinHeapPush(Day7Perm, perm_stack, .error, copy);
-                }
+        for (u32 j = 0; j < perms; ++j) {
+            if (day7_eval_permutation(entry, perm)) {
+                result += entry->total;
+                break;
             }
+            day7_next_perm(perm, base);
         }
-
-        Dbg("fail");
-
-    next: {}
     }
 
-    arena_restore(arena, mark);
     return result;
 }
 
@@ -152,9 +124,8 @@ internal DayResult day7(Arena* arena, Str input) {
         *VecPush(entries) = entry;
     }
 
-    i64 part1 = 0;  // day7_count_matches(arena, entries.slice, 2);
-    i64 part2 = day7_count_matches(arena, entries.slice, 3);
-    // i64 part2 = 0;
+    i64 part1 = day7_count_matches(entries.slice, 2);
+    i64 part2 = day7_count_matches(entries.slice, 3);
 
     DayResult result       = {0};
     result.parts[0].as_i64 = part1;
