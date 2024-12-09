@@ -1,7 +1,7 @@
 #include "main.h"
 
-#define DAY6_ENTRIES_CAPACITY     1024
-#define DAY6_ENTRY_ITEMS_CAPACITY 32
+#define DAY7_ENTRIES_CAPACITY     1024
+#define DAY7_ENTRY_ITEMS_CAPACITY 32
 
 enumdef(Day7Op, u8){
     DAY7_PLUS,
@@ -64,7 +64,7 @@ internal u64 day7_op_exec(Day7Op op, u64 a, u64 b) {
 
 internal void day7_next_perm(Day7Op perm[], u32 base) {
     base--;
-    for (u32 i = 0; i < DAY6_ENTRY_ITEMS_CAPACITY; ++i) {
+    for (u32 i = 0; i < DAY7_ENTRY_ITEMS_CAPACITY; ++i) {
         if (perm[i] < base) {
             perm[i]++;
             return;
@@ -89,7 +89,7 @@ internal u64 day7_count_matches(Slice_Day7Entry entries, u32 base) {
 
         u64 perms = (u64)pow(base, entry->items.count - 1);
 
-        Day7Op perm[DAY6_ENTRY_ITEMS_CAPACITY] = {0};
+        Day7Op perm[DAY7_ENTRY_ITEMS_CAPACITY] = {0};
 
         for (u32 j = 0; j < perms; ++j) {
             if (day7_eval_permutation(entry, perm)) {
@@ -104,14 +104,14 @@ internal u64 day7_count_matches(Slice_Day7Entry entries, u32 base) {
 }
 
 internal DayResult day7(Arena* arena, Str input) {
-    Vec_Day7Entry entries = VecAlloc(Day7Entry, arena, DAY6_ENTRIES_CAPACITY);
+    Vec_Day7Entry entries = VecAlloc(Day7Entry, arena, DAY7_ENTRIES_CAPACITY);
 
     foreach (StrSplitIter, lines, '\n', input) {
         StrSplitIter by_colon = StrSplitIter_new(':', lines.item);
 
         Day7Entry entry = (Day7Entry){
             .total = str_parse_u64(by_colon.item, 10),
-            .items = VecAlloc(u16, arena, DAY6_ENTRY_ITEMS_CAPACITY),
+            .items = VecAlloc(u16, arena, DAY7_ENTRY_ITEMS_CAPACITY),
         };
 
         StrSplitIter_next(&by_colon);

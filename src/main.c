@@ -5,7 +5,7 @@
 // -------------------------------
 #define BIGBOY_INPUTS 0
 #define TEST_INPUTS   0
-#define DAY_NUMBER    7
+#define DAY_NUMBER    8
 #define HIDE_SOLUTION 0
 // -------------------------------
 
@@ -23,7 +23,7 @@
 #if DEBUG || BIGBOY_INPUTS
 #define ITERATIONS 1
 #else
-#define ITERATIONS 1
+#define ITERATIONS 1000
 #endif
 
 #include "day1.c"
@@ -33,6 +33,7 @@
 #include "day5.c"
 #include "day6.c"
 #include "day7.c"
+#include "day8.c"
 
 #define DayFn(x)  Concatenate(day, x)
 #define DayStr(x) Stringify(x)

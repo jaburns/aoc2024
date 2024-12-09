@@ -5,22 +5,6 @@
 #define MAX_ROWS    Kb(512)
 #define MAX_COLUMNS 1024
 
-#if BIGBOY_INPUTS
-
-internal DayResult day2(Arena* arena, Str input) {
-    u32 part1 = 0;
-    u32 part2 = 0;
-
-    Panic("TODO: implement day 2 bigboy");
-
-    DayResult result       = {0};
-    result.parts[0].as_i64 = part1;
-    result.parts[1].as_i64 = part2;
-    return result;
-}
-
-#else
-
 internal DayResult day2(Arena* arena, Str input) {
     u8* data      = arena_alloc_nz(arena, MAX_COLUMNS * MAX_ROWS * sizeof(u8));
     u8* lengths   = arena_alloc_nz(arena, MAX_ROWS * sizeof(u8));
@@ -159,5 +143,3 @@ internal DayResult day2(Arena* arena, Str input) {
     result.parts[1].as_i64 = part2;
     return result;
 }
-
-#endif
