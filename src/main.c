@@ -23,7 +23,7 @@
 #if DEBUG || BIGBOY_INPUTS
 #define ITERATIONS 1
 #else
-#define ITERATIONS 1000
+#define ITERATIONS 4
 #endif
 
 #include "day1.c"
@@ -105,7 +105,7 @@ i32 main(int argc, char** argv) {
     printf("\n");
     printf(" Part 2: ");
 #if HIDE_SOLUTION
-    printf("[x]");
+    printf(result.parts[1].as_i64 ? "[x]" : "[ ]");
 #else
     print_result_part(&result.parts[1]);
 #endif
