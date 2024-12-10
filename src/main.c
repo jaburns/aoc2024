@@ -6,7 +6,7 @@
 #define BIGBOY_INPUTS 0
 #define TEST_INPUTS   0
 #define DAY_NUMBER    10
-#define HIDE_SOLUTION 1
+#define HIDE_SOLUTION 0
 // -------------------------------
 
 #if BIGBOY_INPUTS
