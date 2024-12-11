@@ -1,6 +1,6 @@
 #include "main.h"
 
-#define DAY11_HASHARRAY_CAPACITY 4096
+#define DAY11_HASHARRAY_CAPACITY Kb(8)
 
 internal i32 day11_count_decimal_digits(u64 b) {
     i32 digits = 0;
@@ -59,8 +59,8 @@ internal u64 day11_count(HashArray* hash) {
 }
 
 internal DayResult day11(Arena* arena, Str input) {
-    HashArray* hash0 = hasharray_alloc(arena, sizeof(u64), sizeof(u64), DAY11_HASHARRAY_CAPACITY);
-    HashArray* hash1 = hasharray_alloc(arena, sizeof(u64), sizeof(u64), DAY11_HASHARRAY_CAPACITY);
+    HashArray* hash0 = hasharray_alloc_with_cap(arena, sizeof(u64), sizeof(u64), DAY11_HASHARRAY_CAPACITY);
+    HashArray* hash1 = hasharray_alloc_with_cap(arena, sizeof(u64), sizeof(u64), DAY11_HASHARRAY_CAPACITY);
 
     foreach (StrSplitWhitespaceIter, it, input) {
         u64 value = str_parse_u64(it.item, 10);
