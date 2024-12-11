@@ -1,29 +1,6 @@
 #include "main.h"
 
-#define DAY11_STONE_POOL_SIZE Gb(8)
-
-structdef(Day11Stone) {
-    u64         value;
-    Day11Stone* next;
-};
-
-internal void day11_print_stones(Day11Stone* stone_stack) {
-    Day11Stone* stone = stone_stack;
-    while (stone) {
-        Dbg(stone->value);
-        stone = stone->next;
-    }
-}
-
-internal u64 day11_count_stones(Day11Stone* stone_stack) {
-    Day11Stone* stone  = stone_stack;
-    u64         result = 0;
-    while (stone) {
-        result++;
-        stone = stone->next;
-    }
-    return result;
-}
+#define DAY11_HASHARRAY_CAPACITY 4096
 
 internal u32 day11_count_decimal_digits(u64 b) {
     u32 digits = 0;
@@ -40,67 +17,63 @@ internal void day11_split(u32 digits, u64 value, u64* a, u64* b) {
         prod *= 10;
         digits--;
     }
-
     *a = value / prod;
     *b = value % prod;
 }
 
-internal void day11_blink(Day11Stone** stone_pool, Day11Stone* stone_pool_start, Day11Stone* stone_stack) {
-    Day11Stone* stone = stone_stack;
-    while (stone) {
-        Day11Stone* next = stone->next;
-        if (stone->value == 0) {
-            stone->value = 1;
-        } else {
-            u32 digits = day11_count_decimal_digits(stone->value);
+internal void day11_blink(HashArray* hash0, HashArray* hash1) {
+    foreach (HashArrayIter, it, hash0) {
+        u64 value = *(u64*)it.key;
+        u64 count = *(u64*)it.value;
 
+        if (value == 0) {
+            u64 target_value                              = 1;
+            *(u64*)hasharray_entry(hash1, &target_value) += count;
+        } else {
+            u32 digits = day11_count_decimal_digits(value);
             if (digits & 1) {
-                stone->value *= 2024;
+                u64 target_value                              = value * 2024;
+                *(u64*)hasharray_entry(hash1, &target_value) += count;
             } else {
                 u64 a, b;
-                day11_split(digits / 2, stone->value, &a, &b);
-                stone->value = a;
-
-                Day11Stone* new_stone = (*stone_pool)++;
-                if (new_stone >= &stone_pool_start[DAY11_STONE_POOL_SIZE]) {
-                    Panic("Off the end of the pool!");
-                }
-                new_stone->value = b;
-
-                stone->next     = new_stone;
-                new_stone->next = next;
+                day11_split(digits / 2, value, &a, &b);
+                *(u64*)hasharray_entry(hash1, &a) += count;
+                *(u64*)hasharray_entry(hash1, &b) += count;
             }
         }
-        stone = next;
     }
 }
 
 internal DayResult day11(Arena* arena, Str input) {
-    u64 part1 = 0;
-    u64 part2 = 0;
-
-    Day11Stone* stone_pool       = calloc(DAY11_STONE_POOL_SIZE, sizeof(Day11Stone));
-    Day11Stone* stone_pool_start = stone_pool;
-    Day11Stone* stone_stack      = NULL;
+    HashArray* hash0 = hasharray_alloc(arena, sizeof(u64), sizeof(u64), DAY11_HASHARRAY_CAPACITY);
+    HashArray* hash1 = hasharray_alloc(arena, sizeof(u64), sizeof(u64), DAY11_HASHARRAY_CAPACITY);
 
     foreach (StrSplitWhitespaceIter, it, input) {
-        Day11Stone* new_stone = stone_pool++;
-        new_stone->value      = str_parse_u64(it.item, 10);
-        SllStackPush(stone_stack, new_stone);
+        u64 value = str_parse_u64(it.item, 10);
+        ++*(u64*)hasharray_entry(hash0, &value);
     }
 
     for (u32 i = 0; i < 25; ++i) {
-        day11_blink(&stone_pool, stone_pool_start, stone_stack);
+        hasharray_clear(hash1);
+        day11_blink(hash0, hash1);
+        Swap(HashArray*, hash0, hash1);
     }
 
-    part1 = day11_count_stones(stone_stack);
+    u64 part1 = 0;
+    foreach (HashArrayIter, it, hash0) {
+        part1 += *(u64*)it.value;
+    }
 
     for (u32 i = 0; i < 50; ++i) {
-        Dbg(i);
-        day11_blink(&stone_pool, stone_pool_start, stone_stack);
+        hasharray_clear(hash1);
+        day11_blink(hash0, hash1);
+        Swap(HashArray*, hash0, hash1);
     }
 
-    part2 = day11_count_stones(stone_stack);
+    u64 part2 = 0;
+    foreach (HashArrayIter, it, hash0) {
+        part2 += *(u64*)it.value;
+    }
 
     DayResult result       = {0};
     result.parts[0].as_i64 = part1;
