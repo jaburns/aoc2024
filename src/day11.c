@@ -2,8 +2,8 @@
 
 #define DAY11_HASHARRAY_CAPACITY 4096
 
-internal u32 day11_count_decimal_digits(u64 b) {
-    u32 digits = 0;
+internal i32 day11_count_decimal_digits(u64 b) {
+    i32 digits = 0;
     while (b > 0) {
         b /= 10;
         digits++;
@@ -11,14 +11,12 @@ internal u32 day11_count_decimal_digits(u64 b) {
     return digits;
 }
 
-internal void day11_split(u32 digits, u64 value, u64* a, u64* b) {
-    u64 prod = 1;
-    while (digits > 0) {
-        prod *= 10;
-        digits--;
-    }
-    *a = value / prod;
-    *b = value % prod;
+internal void day11_split(i32 digits, u64 value, u64* a, u64* b) {
+    digits   /= 2;
+    u64 tens  = 1;
+    while (--digits >= 0) tens *= 10;
+    *a = value / tens;
+    *b = value % tens;
 }
 
 internal void day11_blink(HashArray* hash0, HashArray* hash1) {
@@ -30,18 +28,34 @@ internal void day11_blink(HashArray* hash0, HashArray* hash1) {
             u64 target_value                              = 1;
             *(u64*)hasharray_entry(hash1, &target_value) += count;
         } else {
-            u32 digits = day11_count_decimal_digits(value);
+            i32 digits = day11_count_decimal_digits(value);
             if (digits & 1) {
                 u64 target_value                              = value * 2024;
                 *(u64*)hasharray_entry(hash1, &target_value) += count;
             } else {
                 u64 a, b;
-                day11_split(digits / 2, value, &a, &b);
+                day11_split(digits, value, &a, &b);
                 *(u64*)hasharray_entry(hash1, &a) += count;
                 *(u64*)hasharray_entry(hash1, &b) += count;
             }
         }
     }
+}
+
+internal void day11_blink_multiple(HashArray** hash0p, HashArray** hash1p, u32 count) {
+    for (u32 i = 0; i < count; ++i) {
+        hasharray_clear(*hash1p);
+        day11_blink(*hash0p, *hash1p);
+        Swap(HashArray*, *hash0p, *hash1p);
+    }
+}
+
+internal u64 day11_count(HashArray* hash) {
+    u64 result = 0;
+    foreach (HashArrayIter, it, hash) {
+        result += *(u64*)it.value;
+    }
+    return result;
 }
 
 internal DayResult day11(Arena* arena, Str input) {
@@ -53,27 +67,10 @@ internal DayResult day11(Arena* arena, Str input) {
         ++*(u64*)hasharray_entry(hash0, &value);
     }
 
-    for (u32 i = 0; i < 25; ++i) {
-        hasharray_clear(hash1);
-        day11_blink(hash0, hash1);
-        Swap(HashArray*, hash0, hash1);
-    }
-
-    u64 part1 = 0;
-    foreach (HashArrayIter, it, hash0) {
-        part1 += *(u64*)it.value;
-    }
-
-    for (u32 i = 0; i < 50; ++i) {
-        hasharray_clear(hash1);
-        day11_blink(hash0, hash1);
-        Swap(HashArray*, hash0, hash1);
-    }
-
-    u64 part2 = 0;
-    foreach (HashArrayIter, it, hash0) {
-        part2 += *(u64*)it.value;
-    }
+    day11_blink_multiple(&hash0, &hash1, 25);
+    u64 part1 = day11_count(hash0);
+    day11_blink_multiple(&hash0, &hash1, 50);
+    u64 part2 = day11_count(hash0);
 
     DayResult result       = {0};
     result.parts[0].as_i64 = part1;
