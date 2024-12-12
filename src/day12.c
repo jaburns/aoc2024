@@ -13,7 +13,6 @@ structdef(Day12Region) {
     u32 corners;
     u32 area;
 };
-DefArrayTypes(Day12Region);
 
 internal void day12_walk(char* input, bool* flagged, i32 x, i32 y, char seeking, Day12Region* region) {
     u32 this = x + y * DAY12_STRIDE;
