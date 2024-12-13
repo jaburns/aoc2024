@@ -7,28 +7,19 @@ structdef(Day13Machine) {
 };
 DefArrayTypes(Day13Machine);
 
-internal u64 day13_solve(Day13Machine* m, u64* part1, u64* part2) {
-    f64 px = m->cx + 10000000000000.0;
-    f64 py = m->cy + 10000000000000.0;
+internal u64 day13_solve(Day13Machine* m, f64 offset) {
+    f64 px = m->cx + offset;
+    f64 py = m->cy + offset;
 
-    f64 a0 = m->ax;
-    f64 b0 = m->bx;
-    f64 c0 = px;
-
-    f64 a1 = m->ay;
-    f64 b1 = m->by;
-    f64 c1 = py;
-
-    f64 fy = (c0 / a0 * a1 - c1) / (a1 * b0 / a0 - b1);
-    f64 fx = c0 / a0 - b0 / a0 * fy;
+    f64 fy = (px / m->ax * m->ay - py) / (m->ay * m->bx / m->ax - m->by);
+    f64 fx = px / m->ax - m->bx / m->ax * fy;
 
     f64 x = round(fx);
     f64 y = round(fy);
 
     if (x * m->ax + y * m->bx == px && x * m->ay + y * m->by == py) {
-        return 3 * x + y;
+        return 3 * (u64)x + (u64)y;
     }
-
     return 0;
 }
 
@@ -56,15 +47,15 @@ internal DayResult day13(Arena* arena, Str input) {
 
         Str cx      = str_before_first_index(',', str_after_first_index('=', lines_iter.item));
         Str cy      = str_after_last_index('=', lines_iter.item);
-        machine->cx = str_parse_i32(cx, 10);
-        machine->cy = str_parse_i32(cy, 10);
+        machine->cx = (f64)str_parse_u32(cx, 10);
+        machine->cy = (f64)str_parse_u32(cy, 10);
         StrSplitIter_next(&lines_iter);
         StrSplitIter_next(&lines_iter);
     }
 
     for (u32 i = 0; i < machines.count; ++i) {
-        u64 cost  = day13_solve(&machines.items[i], &part1, &part2);
-        part1    += cost;
+        part1 += day13_solve(&machines.items[i], 0.0);
+        part2 += day13_solve(&machines.items[i], 10000000000000.0);
     }
 
     DayResult result       = {0};
