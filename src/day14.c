@@ -8,8 +8,7 @@
 #define DAY14_HEIGHT 103
 #endif
 
-#define DAY14_STRIDE            (DAY14_WIDTH + 1)
-#define DAY14_ENABLE_PRINT_MODE 0
+#define DAY14_STRIDE (DAY14_WIDTH + 1)
 
 structdef(Day14Robot) {
     i64 x, y;
@@ -17,31 +16,37 @@ structdef(Day14Robot) {
 };
 DefArrayTypes(Day14Robot);
 
-internal void day14_print_pictures(Arena* arena, Slice_Day14Robot robots) {
-    usize grid_len = DAY14_STRIDE * DAY14_HEIGHT + 1;
-    char* grid     = ArenaAlloc(char, arena, grid_len);
+internal u64 day14_find_low_entropy(Arena* arena, Slice_Day14Robot robots) {
+    Slice_bool grid = SliceAlloc(bool, arena, DAY14_WIDTH* DAY14_HEIGHT);
 
-    u64 elapsed = 0;
-    for (u32 xx = 0; xx < 7000; xx++) {
-        for (u32 y = 0; y < DAY14_HEIGHT; ++y) {
-            for (u32 x = 0; x < DAY14_WIDTH; ++x) {
-                grid[x + DAY14_STRIDE * y] = ' ';
-            }
-            grid[DAY14_WIDTH + DAY14_STRIDE * y] = '\n';
-        }
+    u64 expected_rle = 2 * robots.count;
+    u64 low_rle      = expected_rle * 4 / 5;  // 80% of expected length
+
+    u64 elapsed  = 0;
+    u64 best_rle = 0;
+    for (u32 i = 1; i < 10000; i++) {
+        ZeroArray(grid.items, grid.count);
 
         for (u32 i = 0; i < robots.count; ++i) {
-            Day14Robot* r                    = &robots.items[i];
-            r->x                             = i64_mod(r->x + r->vx, DAY14_WIDTH);
-            r->y                             = i64_mod(r->y + r->vy, DAY14_HEIGHT);
-            grid[r->x + DAY14_STRIDE * r->y] = 'X';
-        }
-        elapsed++;
+            Day14Robot* r = &robots.items[i];
+            r->x          = i64_mod(r->x + r->vx, DAY14_WIDTH);
+            r->y          = i64_mod(r->y + r->vy, DAY14_HEIGHT);
 
-        printf("-----------------------------------------------------------------------------------------------------------------\n");
-        printf("%s\n", grid);
-        printf("%llu\n", elapsed);
+            grid.items[r->x + DAY14_STRIDE * r->y] = true;
+        }
+
+        u64  rle  = 0;
+        bool prev = false;
+        for (u32 i = 0; i < grid.count; ++i) {
+            bool next  = grid.items[i];
+            rle       += next != prev;
+            prev       = next;
+        }
+
+        if (rle < low_rle) return i;
     }
+
+    return 0;
 }
 
 internal DayResult day14(Arena* arena, Str input) {
@@ -77,12 +82,8 @@ internal DayResult day14(Arena* arena, Str input) {
         };
     }
 
-    if (DAY14_ENABLE_PRINT_MODE) {
-        day14_print_pictures(arena, robots.slice);
-    }
-
     i64 part1 = a * b * c * d;
-    i64 part2 = 6446;  // determined by sifting through the printed results
+    i64 part2 = day14_find_low_entropy(arena, robots.slice);
 
     DayResult result       = {0};
     result.parts[0].as_i64 = part1;
