@@ -20,10 +20,8 @@ internal u64 day14_find_low_entropy(Arena* arena, Slice_Day14Robot robots) {
     Slice_bool grid = SliceAlloc(bool, arena, DAY14_WIDTH* DAY14_HEIGHT);
 
     u64 expected_rle = 2 * robots.count;
-    u64 low_rle      = expected_rle * 4 / 5;  // 80% of expected length
+    u64 low_rle      = expected_rle * 4 / 5;
 
-    u64 elapsed  = 0;
-    u64 best_rle = 0;
     for (u32 i = 1; i < 10000; i++) {
         ZeroArray(grid.items, grid.count);
 

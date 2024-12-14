@@ -31,7 +31,7 @@ internal DayResult day4(Arena* arena, Str input) {
         bool bottom  = y < (DAY4_HEIGHT - 3) * ROW_SIZE;
         bool part2_y = y >= 1 * ROW_SIZE && y < (DAY4_HEIGHT - 1) * ROW_SIZE;
 
-        for (i64 x = 0, o_max = DAY4_WIDTH; x < DAY4_WIDTH; ++x) {
+        for (i64 x = 0; x < DAY4_WIDTH; ++x) {
             i64 o = x + y;
 
             char middle = input.items[o];

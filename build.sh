@@ -2,30 +2,29 @@
 cd "$(dirname "$0")"
 set -e
 
-#DEBUG_BUILD=1
-
-WARNINGS='
+BASE='
     -Wall
     -Werror
     -Wswitch-enum
     -Wno-unused-function
     -Wno-logical-op-parentheses
-    -Wno-unused-variable
-    -Wno-unused-but-set-variable
 '
 
-if [[ -n "$DEBUG_BUILD" ]]; then
-    OPTS='
+if grep '#define DEBUG \+1' src/main.c; then
+    EXTRA='
         -g
         -O0
-        -DDEBUG=1
         -fsanitize=undefined,unsigned-integer-overflow
         -fno-omit-frame-pointer
     '
 else
-    OPTS='-O3 -g'
+    EXTRA='
+        -g
+        -O3
+        -Wno-unused-variable
+        -Wno-unused-but-set-variable
+    '
 fi
 
 mkdir -p bin
-
-clang -std=c11 src/main.c $WARNINGS $OPTS -o bin/aoc2024
+clang -std=c11 src/main.c -o bin/aoc2024 $BASE $EXTRA

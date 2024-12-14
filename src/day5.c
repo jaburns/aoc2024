@@ -40,12 +40,12 @@ internal void day5_quicksort(Day5Int* arr, size_t len, i8* rules) {
             Swap(Day5Int, pivot[0], arr[i]);
         }
 
-        if (i > start + 1) {  // && start <= halflen) {
+        if (i > start + 1 && start <= halflen) {
             *stack++ = start;
             *stack++ = i - 1;
         }
         i++;
-        if (i < end) {  // i <= halflen) {
+        if (i < end && i <= halflen) {
             *stack++ = i;
             *stack++ = end;
         }

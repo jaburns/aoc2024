@@ -1,13 +1,14 @@
-#include "main.h"
-
-#include "../jaburns_c/base/inc.c"
-
 // -------------------------------
+#define DEBUG         0
 #define BIGBOY_INPUTS 0
 #define TEST_INPUTS   0
 #define DAY_NUMBER    14
 #define HIDE_SOLUTION 0
 // -------------------------------
+
+#include "main.h"
+
+#include "../jaburns_c/base/inc.c"
 
 #if BIGBOY_INPUTS
 #define ALLOCATION_SIZE Gb(8)
@@ -23,7 +24,7 @@
 #if DEBUG || BIGBOY_INPUTS
 #define ITERATIONS 1
 #else
-#define ITERATIONS 100
+#define ITERATIONS 10
 #endif
 
 #include "day1.c"
