@@ -16,13 +16,13 @@ if grep '#define DEBUG \+1' src/main.c; then
         -O0
         -fsanitize=undefined,unsigned-integer-overflow
         -fno-omit-frame-pointer
+        -Wno-unused-variable
+        -Wno-unused-but-set-variable
     '
 else
     EXTRA='
         -g
         -O3
-        -Wno-unused-variable
-        -Wno-unused-but-set-variable
     '
 fi
 
