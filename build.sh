@@ -10,7 +10,7 @@ BASE='
     -Wno-logical-op-parentheses
 '
 
-if grep '#define DEBUG \+1' src/main.c; then
+if grep -q '#define DEBUG \+1' src/main.c; then
     EXTRA='
         -g
         -O0
