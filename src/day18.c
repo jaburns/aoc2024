@@ -42,9 +42,9 @@ internal void day18_step(Vec_Day18CellPtr* open_set, Day18Cell* grid, Day18Cell*
     }
 }
 
-internal bool day18_reset_and_solve(Arena* arena, Day18Cell* grid, u16 max_wall) {
-    ArenaMark mk  = arena_mark(arena);
-    bool      ret = false;
+internal bool day18_reset_and_solve(Day18Cell* grid, u16 max_wall) {
+    ArenaTemp scratch = scratch_acquire(NULL, 0);
+    bool      ret     = false;
 
     for (i32 y = 0, i = 0; y < DAY18_SIZE; ++y) {
         for (i32 x = 0; x < DAY18_SIZE; ++x) {
@@ -59,7 +59,7 @@ internal bool day18_reset_and_solve(Arena* arena, Day18Cell* grid, u16 max_wall)
         }
     }
 
-    Vec_Day18CellPtr open_set = VecAlloc(Day18CellPtr, arena, 2048);
+    Vec_Day18CellPtr open_set = VecAlloc(Day18CellPtr, scratch.arena, 2048);
 
     grid[0].gscore      = 0;
     grid[0].fscore      = day18_fscore(IVEC2_ZERO);
@@ -84,7 +84,7 @@ internal bool day18_reset_and_solve(Arena* arena, Day18Cell* grid, u16 max_wall)
 
 end:
 
-    arena_restore(arena, mk);
+    scratch_release(scratch);
     return ret;
 }
 
@@ -111,7 +111,7 @@ internal DayResult day18(Arena* arena, Str input) {
 
 #if DAY18_ENABLE_PART_1
 
-    day18_reset_and_solve(arena, grid, DAY18_PART1_COUNT);
+    day18_reset_and_solve(grid, DAY18_PART1_COUNT);
     result.parts[0].as_i64 = grid[DAY18_END_COORD.x + DAY18_END_COORD.y * DAY18_SIZE].gscore;
 
 #endif
@@ -121,7 +121,7 @@ internal DayResult day18(Arena* arena, Str input) {
     u16 max = line_count;
     while (max > min + 1) {
         u16 pivot = ((max - min) / 2) + min;
-        if (day18_reset_and_solve(arena, grid, pivot)) {
+        if (day18_reset_and_solve(grid, pivot)) {
             min = pivot;
         } else {
             max = pivot;

@@ -70,7 +70,7 @@ internal void print_time(Arena* arena, u64 nanos) {
 }
 
 i32 main(int argc, char** argv) {
-    scratch_thread_local_create(&GLOBAL_ALLOCATOR);
+    scratch_thread_local_create(&GLOBAL_ALLOCATOR, ALLOCATION_SIZE);
     ArenaTemp scratch = scratch_acquire(NULL, 0);
 
     timing_global_init();
