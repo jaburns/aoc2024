@@ -9,48 +9,32 @@
 #endif
 
 structdef(Day18Cell) {
-    bool corrupt;
-    u32  steps;
+    bool       corrupt;
+    bool       in_open_set;
+    ivec2      coord;
+    i32        gscore;
+    i32        fscore;
+    Day18Cell* from;
 };
 
-internal void day18_walk(Day18Cell* grid, u32 x, u32 y, u32 steps) {
-    if (x > 0) {
-        u32        x1   = x - 1;
-        u32        y1   = y;
-        Day18Cell* cell = &grid[x1 + y1 * DAY18_SIZE];
-        if (!cell->corrupt && (cell->steps == 0 || cell->steps > steps)) {
-            cell->steps = steps;
-            day18_walk(grid, x1, y1, steps + 1);
-        }
-    }
+typedef Day18Cell* Day18CellPtr;
+DefArrayTypes(Day18CellPtr);
 
-    if (x < DAY18_SIZE - 1) {
-        u32        x1   = x + 1;
-        u32        y1   = y;
-        Day18Cell* cell = &grid[x1 + y1 * DAY18_SIZE];
-        if (!cell->corrupt && (cell->steps == 0 || cell->steps > steps)) {
-            cell->steps = steps;
-            day18_walk(grid, x1, y1, steps + 1);
-        }
-    }
+internal i32 day18_fscore(ivec2 coord) {
+    return 2 * DAY18_SIZE - 2 - (coord.x) - (coord.y);
+}
 
-    if (y > 0) {
-        u32        x1   = x;
-        u32        y1   = y - 1;
-        Day18Cell* cell = &grid[x1 + y1 * DAY18_SIZE];
-        if (!cell->corrupt && (cell->steps == 0 || cell->steps > steps)) {
-            cell->steps = steps;
-            day18_walk(grid, x1, y1, steps + 1);
-        }
-    }
-
-    if (y < DAY18_SIZE - 1) {
-        u32        x1   = x;
-        u32        y1   = y + 1;
-        Day18Cell* cell = &grid[x1 + y1 * DAY18_SIZE];
-        if (!cell->corrupt && (cell->steps == 0 || cell->steps > steps)) {
-            cell->steps = steps;
-            day18_walk(grid, x1, y1, steps + 1);
+internal void day18_step(Vec_Day18CellPtr* open_set, Day18Cell* grid, Day18Cell* cur, ivec2 delta) {
+    ivec2      ncoord   = ivec2_add(cur->coord, delta);
+    Day18Cell* neighbor = &grid[ncoord.x + ncoord.y * DAY18_SIZE];
+    if (!neighbor->corrupt) {
+        i32 newg = cur->gscore + 1;
+        if (newg < neighbor->gscore) {
+            neighbor->from        = cur;
+            neighbor->gscore      = newg;
+            neighbor->fscore      = newg + day18_fscore(neighbor->coord);
+            neighbor->in_open_set = true;
+            VecMinHeapPush(Day18CellPtr, *open_set, ->fscore, neighbor);
         }
     }
 }
@@ -68,34 +52,48 @@ internal DayResult day18(Arena* arena, Str input) {
 
     Day18Cell* grid = ArenaAlloc(Day18Cell, arena, DAY18_SIZE * DAY18_SIZE);
 
-    i64 part1;
+    for (i32 i = 0; i < DAY18_PART1_COUNT; ++i) {
+        grid[data.items[i].x + data.items[i].y * DAY18_SIZE].corrupt = true;
+    }
     {
-        for (u32 i = 0; i < DAY18_PART1_COUNT; ++i) {
-            grid[data.items[i].x + data.items[i].y * DAY18_SIZE].corrupt = true;
+        i32 i = 0;
+        for (i32 y = 0; y < DAY18_SIZE; ++y) {
+            for (i32 x = 0; x < DAY18_SIZE; ++x) {
+                grid[i].gscore = INT32_MAX;
+                grid[i].fscore = INT32_MAX;
+                grid[i].coord  = ivec2(x, y);
+                i++;
+            }
         }
-        grid[0].steps = 1;
-        day18_walk(grid, 0, 0, 2);
-        part1 = grid[DAY18_SIZE - 1 + (DAY18_SIZE - 1) * DAY18_SIZE].steps - 1;
     }
 
-    ivec2 part2_coord;
-    for (u32 c = DAY18_PART1_COUNT;; ++c) {
-        ZeroArray(grid, DAY18_SIZE * DAY18_SIZE);
+    i64              part1     = 0;
+    Vec_Day18CellPtr open_set  = VecAlloc(Day18CellPtr, arena, 2048);
+    ivec2            end_coord = ivec2(DAY18_SIZE - 1, DAY18_SIZE - 1);
 
-        for (u32 i = 0; i < c; ++i) {
-            grid[data.items[i].x + data.items[i].y * DAY18_SIZE].corrupt = true;
-        }
+    grid[0].gscore      = 0;
+    grid[0].fscore      = day18_fscore(IVEC2_ZERO);
+    grid[0].in_open_set = true;
+    VecMinHeapPush(Day18CellPtr, open_set, ->fscore, &grid[0]);
 
-        grid[0].steps = 1;
-        day18_walk(grid, 0, 0, 2);
-        if (grid[DAY18_SIZE - 1 + (DAY18_SIZE - 1) * DAY18_SIZE].steps == 0) {
-            part2_coord = data.items[c - 1];
+    while (open_set.count) {
+        Day18Cell* cur;
+        VecMinHeapPopInto(Day18CellPtr, open_set, ->fscore, cur);
+        cur->in_open_set = false;
+
+        if (ivec2_eq(cur->coord, end_coord)) {
+            part1 = cur->gscore;
             break;
         }
+
+        if (cur->coord.x > 0) day18_step(&open_set, grid, cur, ivec2(-1, 0));
+        if (cur->coord.x < DAY18_SIZE - 1) day18_step(&open_set, grid, cur, ivec2(1, 0));
+        if (cur->coord.y > 0) day18_step(&open_set, grid, cur, ivec2(0, -1));
+        if (cur->coord.y < DAY18_SIZE - 1) day18_step(&open_set, grid, cur, ivec2(0, 1));
     }
 
     Str part2 = SliceAlloc(char, arena, 64);
-    sprintf(part2.items, "%d,%d", part2_coord.x, part2_coord.y);
+    // sprintf(part2.items, "%d,%d", part2_coord.x, part2_coord.y);
 
     DayResult result       = {0};
     result.parts[0].as_i64 = part1;
