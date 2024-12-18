@@ -2,7 +2,7 @@
 
 #define DAY17_OUTPUT_MAX_SIZE Kb(1)
 
-internal void day17_run(char* program, usize max_ip, u64 a_register, char* output) {
+internal void day17_run_vm(char* program, usize max_ip, u64 a_register, char* output) {
 #define Literal(x) (x - '0')
 #define Combo(x)   (x <= '3' ? (x - '0') : registers[x - '4'])
 
@@ -65,6 +65,7 @@ internal u8 day17_cypher(u64 a) {
     b = b ^ c;
     return b;
 }
+
 internal void day17_run_reversed(u64 a_register, char* output) {
     u64 a = a_register;
 
@@ -87,6 +88,7 @@ internal u64 day17_append_digit(u64 total, u8 digit, u8 match_idx) {
     }
     return 0;
 }
+
 internal u8 day17_count_matches(u64 total, u8 digit) {
     u8 count   = 0;
     total    <<= 3;
@@ -96,15 +98,15 @@ internal u8 day17_count_matches(u64 total, u8 digit) {
     return count;
 }
 
-readonly_global u8 to_encode[16] = {0, 3, 3, 0, 5, 5, 0, 4, 5, 1, 5, 7, 1, 1, 4, 2};
+readonly_global u8 DAY17_TO_ENCODE[16] = {0, 3, 3, 0, 5, 5, 0, 4, 5, 1, 5, 7, 1, 1, 4, 2};
 
 internal u64 day17_try_encode(u64 total, usize idx) {
     if (idx == 16) return total;
 
-    u8 matches = day17_count_matches(total, to_encode[idx]);
+    u8 matches = day17_count_matches(total, DAY17_TO_ENCODE[idx]);
 
     for (u8 m = 0; m < matches; ++m) {
-        u64 new_total = day17_append_digit(total, to_encode[idx], m);
+        u64 new_total = day17_append_digit(total, DAY17_TO_ENCODE[idx], m);
         if (new_total == 0) continue;
 
         u64 result = day17_try_encode(new_total, idx + 1);
