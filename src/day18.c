@@ -8,17 +8,17 @@
 #define DAY18_PART1_COUNT 1024
 #endif
 
+#define DAY18_ENABLE_PART_1 1
 #define DAY18_ENABLE_PART_2 1
 
 #define DAY18_END_COORD (ivec2(DAY18_SIZE - 1, DAY18_SIZE - 1))
 
 structdef(Day18Cell) {
-    Day18Cell* from;
-    ivec2      coord;
-    i32        gscore;
-    i32        fscore;
-    u16        wall_idx;
-    bool       in_open_set;
+    ivec2 coord;
+    i32   gscore;
+    i32   fscore;
+    u16   wall_idx;
+    bool  in_open_set;
 };
 
 typedef Day18Cell* Day18CellPtr;
@@ -34,7 +34,6 @@ internal void day18_step(Vec_Day18CellPtr* open_set, Day18Cell* grid, Day18Cell*
     if (neighbor->wall_idx > max_wall) {
         i32 newg = cur->gscore + 1;
         if (newg < neighbor->gscore) {
-            neighbor->from        = cur;
             neighbor->gscore      = newg;
             neighbor->fscore      = newg + day18_fscore(neighbor->coord);
             neighbor->in_open_set = true;
@@ -50,7 +49,6 @@ internal bool day18_reset_and_solve(Arena* arena, Day18Cell* grid, u16 max_wall)
     for (i32 y = 0, i = 0; y < DAY18_SIZE; ++y) {
         for (i32 x = 0; x < DAY18_SIZE; ++x) {
             grid[i] = (Day18Cell){
-                .from        = NULL,
                 .coord       = ivec2(x, y),
                 .gscore      = INT32_MAX,
                 .fscore      = INT32_MAX,
@@ -109,35 +107,29 @@ internal DayResult day18(Arena* arena, Str input) {
         *VecPush(input_coords)            = ivec2(x, y);
     }
 
-    day18_reset_and_solve(arena, grid, DAY18_PART1_COUNT);
+    DayResult result = {0};
 
-    DayResult result       = {0};
+#if DAY18_ENABLE_PART_1
+
+    day18_reset_and_solve(arena, grid, DAY18_PART1_COUNT);
     result.parts[0].as_i64 = grid[DAY18_END_COORD.x + DAY18_END_COORD.y * DAY18_SIZE].gscore;
 
-#if !DAY18_ENABLE_PART_2
-    result.parts[1].as_i64 = 0;
-#else
+#endif
+#if DAY18_ENABLE_PART_2
 
     u16 min = DAY18_PART1_COUNT;
     u16 max = line_count;
-    for (;;) {
+    while (max > min + 1) {
         u16 pivot = ((max - min) / 2) + min;
-
         if (day18_reset_and_solve(arena, grid, pivot)) {
             min = pivot;
         } else {
             max = pivot;
         }
-
-        if (max == min + 1) {
-            break;
-        }
     }
 
-    ivec2 part2_coord = input_coords.items[max];
-
     Str part2 = SliceAlloc(char, arena, 64);
-    sprintf(part2.items, "%d,%d", part2_coord.x, part2_coord.y);
+    sprintf(part2.items, "%d,%d", input_coords.items[max].x, input_coords.items[max].y);
 
     result.parts[1].is_str = true;
     result.parts[1].as_str = part2;

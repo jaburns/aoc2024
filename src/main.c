@@ -108,7 +108,7 @@ i32 main(int argc, char** argv) {
     printf("\n");
     printf(" Part 1: ");
 #if HIDE_SOLUTION
-    printf("[x]");
+    printf(result.parts[0].as_i64 ? "[x]" : "[ ]");
 #else
     print_result_part(&result.parts[0]);
 #endif
