@@ -1,7 +1,7 @@
 // -------------------------------
-#define DEBUG         1
+#define DEBUG         0
 #define BIGBOY_INPUTS 0
-#define TEST_INPUTS   1
+#define TEST_INPUTS   0
 #define DAY_NUMBER    19
 #define HIDE_SOLUTION 0
 // -------------------------------
