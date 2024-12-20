@@ -76,7 +76,7 @@ internal DayResult day20(Arena* arena, Str input) {
 
                 i32  skip_len = ivec2_manhattan(delta);
                 i32  other    = grid[p1.x + p1.y * DAY20_SIZE];
-                bool count    = other != 0 && other - cur >= DAY20_MIN_SAVING + skip_len;
+                bool count    = other - cur >= DAY20_MIN_SAVING + skip_len;
 
                 part1 += skip_len == 2 && count;
                 part2 += count;
