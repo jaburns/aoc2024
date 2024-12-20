@@ -56,10 +56,10 @@ internal DayResult day16(Arena* arena, Str input) {
     i64 part2 = 0;
 
     char*           maze        = str_copy(arena, input).items;
-    u32*            right_costs = ArenaAlloc(u32, arena, input.count);
-    u32*            left_costs  = ArenaAlloc(u32, arena, input.count);
-    u32*            down_costs  = ArenaAlloc(u32, arena, input.count);
-    u32*            up_costs    = ArenaAlloc(u32, arena, input.count);
+    u32*            right_costs = ArrayAlloc(u32, arena, input.count);
+    u32*            left_costs  = ArrayAlloc(u32, arena, input.count);
+    u32*            down_costs  = ArrayAlloc(u32, arena, input.count);
+    u32*            up_costs    = ArrayAlloc(u32, arena, input.count);
     Vec_Day16Branch branches    = VecAlloc(Day16Branch, arena, 128);
 
     Day16Branch init_branch = {

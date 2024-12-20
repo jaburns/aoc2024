@@ -9,7 +9,7 @@
 #endif
 
 internal DayResult day20(Arena* arena, Str input) {
-    u32*      grid = ArenaAlloc(u32, arena, DAY20_SIZE * DAY20_SIZE);
+    u32*      grid = ArrayAlloc(u32, arena, DAY20_SIZE * DAY20_SIZE);
     Vec_ivec2 path = VecAlloc(ivec2, arena, DAY20_SIZE * DAY20_SIZE);
 
     ivec2 start, end;

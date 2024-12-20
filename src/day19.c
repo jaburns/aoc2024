@@ -63,7 +63,7 @@ internal u64 day19_pattern_possible(bool* towel_exists, HashArray* seen_patterns
 
 internal DayResult day19(Arena* arena, Str input) {
     HashArray* seen_patterns = hasharray_alloc_with_cap(arena, sizeof(Day19Str), sizeof(u64), DAY19_HASH_CAPACITY);
-    bool*      towel_exists  = ArenaAlloc(bool, arena, (1 << (DAY19_MAX_TOWEL_LEN * DAY19_BITS_PER_COLOR)));
+    bool*      towel_exists  = ArrayAlloc(bool, arena, (1 << (DAY19_MAX_TOWEL_LEN * DAY19_BITS_PER_COLOR)));
 
     StrSplitIter lines_it = StrSplitIter_new('\n', input);
     foreach (StrSplitIter, towel_it, ',', lines_it.item) {

@@ -63,8 +63,8 @@ internal u64 day9_checksum(u16* start, u16* end) {
 }
 
 internal DayResult day9(Arena* arena, Str input) {
-    u16* data  = ArenaAlloc(u16, arena, 10 * input.count);
-    u16* data2 = ArenaAlloc(u16, arena, 10 * input.count);
+    u16* data  = ArrayAlloc(u16, arena, 10 * input.count);
+    u16* data2 = ArrayAlloc(u16, arena, 10 * input.count);
 
     u16* end     = data;
     u16  file_id = 1;

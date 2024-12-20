@@ -31,8 +31,8 @@ internal i64 day8_place_flag(Day8Flag* placed, Day8Flag flag, ivec2 target, bool
 }
 
 internal DayResult day8(Arena* arena, Str input) {
-    Day8Frequency* slots  = ArenaAlloc(Day8Frequency, arena, DAY8_SLOTS);
-    Day8Flag*      placed = ArenaAlloc(Day8Flag, arena, DAY8_SIZE * DAY8_SIZE);
+    Day8Frequency* slots  = ArrayAlloc(Day8Frequency, arena, DAY8_SLOTS);
+    Day8Flag*      placed = ArrayAlloc(Day8Flag, arena, DAY8_SIZE * DAY8_SIZE);
 
     i32 y = 0;
     foreach (StrSplitIter, line, '\n', input) {

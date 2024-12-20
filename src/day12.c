@@ -69,7 +69,7 @@ internal DayResult day12(Arena* arena, Str input) {
     u64 part1 = 0;
     u64 part2 = 0;
 
-    bool* flagged = ArenaAlloc(bool, arena, input.count);
+    bool* flagged = ArrayAlloc(bool, arena, input.count);
 
     i32 y = 0;
     foreach (StrSplitIter, lines_it, '\n', input) {

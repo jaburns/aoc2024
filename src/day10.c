@@ -52,7 +52,7 @@ internal void day10_walk(char* input, bool* flagged, i32 x, i32 y, char seeking,
 }
 
 internal DayResult day10(Arena* arena, Str input) {
-    bool* flagged = ArenaAlloc(bool, arena, input.count);
+    bool* flagged = ArrayAlloc(bool, arena, input.count);
 
     u64 part1 = 0;
     u64 part2 = 0;

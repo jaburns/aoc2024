@@ -90,7 +90,7 @@ end:
 
 internal DayResult day18(Arena* arena, Str input) {
     Vec_ivec2  input_coords = VecAlloc(ivec2, arena, 4096);
-    Day18Cell* grid         = ArenaAlloc(Day18Cell, arena, DAY18_SIZE * DAY18_SIZE);
+    Day18Cell* grid         = ArrayAlloc(Day18Cell, arena, DAY18_SIZE * DAY18_SIZE);
 
     for (u32 i = 0; i < DAY18_SIZE * DAY18_SIZE; ++i) {
         grid[i].wall_idx = UINT16_MAX;

@@ -146,7 +146,7 @@ internal DayResult day15(Arena* arena, Str input) {
     usize input_grid_size = (DAY15_SIZE + 1) * DAY15_SIZE;
 
     Day15Grid grid1 = (Day15Grid){
-        .cells  = ArenaAlloc(char, arena, input_grid_size),
+        .cells  = ArrayAlloc(char, arena, input_grid_size),
         .width  = DAY15_SIZE,
         .height = DAY15_SIZE,
         .stride = DAY15_SIZE + 1,
@@ -157,7 +157,7 @@ internal DayResult day15(Arena* arena, Str input) {
     Slice_char program        = {input.items + program_offset, input.count - program_offset};
 
     Day15Grid grid2 = (Day15Grid){
-        .cells  = ArenaAlloc(char, arena, 2 * DAY15_SIZE * DAY15_SIZE),
+        .cells  = ArrayAlloc(char, arena, 2 * DAY15_SIZE * DAY15_SIZE),
         .width  = 2 * DAY15_SIZE,
         .height = DAY15_SIZE,
         .stride = 2 * DAY15_SIZE,
