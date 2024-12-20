@@ -1,7 +1,9 @@
 #include "main.h"
 
-#define DAY19_MAX_TOWEL_LEN  8
-#define DAY19_BITS_PER_COLOR 3
+#define DAY19_MAX_TOWEL_LEN   8
+#define DAY19_BITS_PER_COLOR  3
+#define DAY19_MAX_PATTERN_LEN 60
+#define DAY19_HASH_CAPACITY   Kb(16)
 
 internal u8 day19_encode_color(char color) {
     switch (color) {
@@ -19,41 +21,57 @@ internal u8 day19_encode_color(char color) {
     AssertUnreachable();
 }
 
-internal u32 day19_encode_towel(Str str) {
-    u32 ret = 0;
-    for (u32 i = 0; i < str.count; ++i) {
+structdef(Stringo) {
+    char chars[DAY19_MAX_PATTERN_LEN];
+};
+
+internal u64 day19_encode_towel(Stringo* str) {
+    u64   ret = 0;
+    char* p   = str->chars;
+    while (*p) {
         ret <<= DAY19_BITS_PER_COLOR;
-        ret  |= day19_encode_color(str.items[i]);
+        ret  |= day19_encode_color(*p++);
     }
     return ret;
 }
 
-internal u32 day19_pattern_possible(bool* towel_exists, Str pattern) {
-    if (pattern.count == 0) return 1;
+internal u64 day19_pattern_possible(bool* towel_exists, HashArray* seen_patterns, Stringo pattern) {
+    usize pattern_count = strlen(pattern.chars);
+    if (pattern_count == 0) return 1;
 
-    u32 result = 0;
+    if (hasharray_has(seen_patterns, &pattern)) {
+        return *(u64*)hasharray_get(seen_patterns, &pattern);
+    }
 
-    u32 max_len = Min(DAY19_MAX_TOWEL_LEN, pattern.count);
+    u64 result  = 0;
+    u64 max_len = Min(DAY19_MAX_TOWEL_LEN, pattern_count);
 
-    for (u32 len = 1; len <= max_len; ++len) {
-        Str chunk   = pattern;
-        chunk.count = len;
+    for (u64 len = 1; len <= max_len; ++len) {
+        Stringo chunk = pattern;
+        memset(&chunk.chars[len], 0, DAY19_MAX_PATTERN_LEN - len);
 
-        if (towel_exists[day19_encode_towel(chunk)]) {
-            result += day19_pattern_possible(towel_exists, str_substr_from(pattern, len));
-            if (result) return result;
+        if (towel_exists[day19_encode_towel(&chunk)]) {
+            Stringo rest = {0};
+            memcpy(rest.chars, &pattern.chars[len], pattern_count - len);
+            result += day19_pattern_possible(towel_exists, seen_patterns, rest);
         }
     }
+
+    *(u64*)hasharray_insert(seen_patterns, &pattern) = result;
 
     return result;
 }
 
 internal DayResult day19(Arena* arena, Str input) {
-    bool* towel_exists = ArenaAlloc(bool, arena, (1 << (DAY19_MAX_TOWEL_LEN * DAY19_BITS_PER_COLOR)));
+    HashArray* seen_patterns = hasharray_alloc_with_cap(arena, sizeof(Stringo), sizeof(u64), DAY19_HASH_CAPACITY);
+    bool*      towel_exists  = ArenaAlloc(bool, arena, (1 << (DAY19_MAX_TOWEL_LEN * DAY19_BITS_PER_COLOR)));
 
     StrSplitIter lines_it = StrSplitIter_new('\n', input);
     foreach (StrSplitIter, towel_it, ',', lines_it.item) {
-        u32 towel           = day19_encode_towel(str_trim(towel_it.item));
+        Str     trimmed = str_trim(towel_it.item);
+        Stringo rest    = {0};
+        memcpy(rest.chars, trimmed.items, trimmed.count);
+        u64 towel           = day19_encode_towel(&rest);
         towel_exists[towel] = true;
     }
 
@@ -61,14 +79,18 @@ internal DayResult day19(Arena* arena, Str input) {
     StrSplitIter_next(&lines_it);
 
     i64 part1 = 0;
-    u64 line  = 0;
+    i64 part2 = 0;
     for (; !lines_it.done; StrSplitIter_next(&lines_it)) {
-        part1 += day19_pattern_possible(towel_exists, lines_it.item);
-        line++;
-        Dbg(line);
+        Stringo rest    = {0};
+        Str     trimmed = str_trim(lines_it.item);
+        memcpy(rest.chars, trimmed.items, trimmed.count);
+        u64 count  = day19_pattern_possible(towel_exists, seen_patterns, rest);
+        part1     += count != 0;
+        part2     += count;
     }
 
     DayResult result       = {0};
     result.parts[0].as_i64 = part1;
+    result.parts[1].as_i64 = part2;
     return result;
 }
