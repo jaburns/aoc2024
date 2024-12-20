@@ -2,7 +2,7 @@
 #define DEBUG         0
 #define BIGBOY_INPUTS 0
 #define TEST_INPUTS   0
-#define DAY_NUMBER    19
+#define DAY_NUMBER    20
 #define HIDE_SOLUTION 0
 // -------------------------------
 
@@ -24,7 +24,7 @@
 #if DEBUG || BIGBOY_INPUTS
 #define ITERATIONS 1
 #else
-#define ITERATIONS 1
+#define ITERATIONS 20
 #endif
 
 #include "day1.c"
@@ -46,6 +46,7 @@
 #include "day17.c"
 #include "day18.c"
 #include "day19.c"
+#include "day20.c"
 
 #define DayFn(x)  Concatenate(day, x)
 #define DayStr(x) Stringify(x)
