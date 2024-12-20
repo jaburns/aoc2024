@@ -66,18 +66,6 @@ internal DayResult day20(Arena* arena, Str input) {
         ivec2 p   = path.items[i];
         i32   cur = grid[p.x + p.y * DAY20_SIZE];
 
-        {
-            i32 left  = p.x > 1 ? grid[p.x - 2 + p.y * DAY20_SIZE] : 0;
-            i32 right = p.x < DAY20_SIZE - 2 ? grid[p.x + 2 + p.y * DAY20_SIZE] : 0;
-            i32 up    = p.y > 1 ? grid[p.x + (p.y - 2) * DAY20_SIZE] : 0;
-            i32 down  = p.y < DAY20_SIZE - 2 ? grid[p.x + (p.y + 2) * DAY20_SIZE] : 0;
-
-            part1 += left != 0 && left - cur >= DAY20_MIN_SAVING + 2;
-            part1 += right != 0 && right - cur >= DAY20_MIN_SAVING + 2;
-            part1 += up != 0 && up - cur >= DAY20_MIN_SAVING + 2;
-            part1 += down != 0 && down - cur >= DAY20_MIN_SAVING + 2;
-        }
-
         ivec2 delta;
         for (delta.y = -20; delta.y <= 20; ++delta.y) {
             i32 xrange = 20 - Abs(delta.y);
@@ -86,8 +74,12 @@ internal DayResult day20(Arena* arena, Str input) {
 
                 if (p1.x < 1 || p1.y < 1 || p1.x > DAY20_SIZE - 2 || p1.y > DAY20_SIZE - 2) continue;
 
-                i32 other  = grid[p1.x + p1.y * DAY20_SIZE];
-                part2     += other != 0 && other - cur >= DAY20_MIN_SAVING + ivec2_manhattan(delta);
+                i32  skip_len = ivec2_manhattan(delta);
+                i32  other    = grid[p1.x + p1.y * DAY20_SIZE];
+                bool count    = other != 0 && other - cur >= DAY20_MIN_SAVING + skip_len;
+
+                part1 += skip_len == 2 && count;
+                part2 += count;
             }
         }
     }
