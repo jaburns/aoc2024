@@ -1,7 +1,7 @@
 // -------------------------------
-#define DEBUG         1
+#define DEBUG         0
 #define BIGBOY_INPUTS 0
-#define TEST_INPUTS   1
+#define TEST_INPUTS   0
 #define DAY_NUMBER    22
 #define HIDE_SOLUTION 0
 // -------------------------------
@@ -24,7 +24,7 @@
 #if DEBUG || BIGBOY_INPUTS
 #define ITERATIONS 1
 #else
-#define ITERATIONS 20
+#define ITERATIONS 1
 #endif
 
 #include "day1.c"
