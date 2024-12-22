@@ -1,8 +1,8 @@
 // -------------------------------
-#define DEBUG         0
+#define DEBUG         1
 #define BIGBOY_INPUTS 0
-#define TEST_INPUTS   0
-#define DAY_NUMBER    20
+#define TEST_INPUTS   1
+#define DAY_NUMBER    22
 #define HIDE_SOLUTION 0
 // -------------------------------
 
@@ -47,6 +47,8 @@
 #include "day18.c"
 #include "day19.c"
 #include "day20.c"
+#include "day21.c"
+#include "day22.c"
 
 #define DayFn(x)  Concatenate(day, x)
 #define DayStr(x) Stringify(x)
