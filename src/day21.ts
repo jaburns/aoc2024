@@ -1,6 +1,7 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 
 function hrTime() {
+    // @ts-ignore
     let t = process.hrtime()
     return Math.floor(t[0] * 1000000 + t[1] / 1000)
 }
@@ -28,7 +29,15 @@ let numericCoords = {
     'A': [2,3],
 }
 
-function explodeArrowPair(a, b) {
+type char = string
+type Elem = string
+    | Elem[]
+    | { len: number, left: Elem, right: Elem }
+type Bag = Record<string, number>
+
+let arrowExpansions: Record<string, string[]> = {}
+
+function explodeArrowPair(a: char, b: char): Elem {
     let [ax, ay] = arrowCoords[a]
     let [bx, by] = arrowCoords[b]
 
@@ -58,7 +67,7 @@ function explodeArrowPair(a, b) {
     }
 }
 
-function explodeNumberPair(a, b) {
+function explodeNumberPair(a: char, b: char): Elem {
     let [ax, ay] = numericCoords[a]
     let [bx, by] = numericCoords[b]
 
@@ -88,55 +97,25 @@ function explodeNumberPair(a, b) {
     }
 }
 
-function minLength(elem) {
-    let out = 0
-    let go = (elem) => {
-        if (Array.isArray(elem)) {
-            for (let x of elem) {
-                go(x)
-            }
+function countLength(elem: Elem): number {
+    if (Array.isArray(elem)) {
+        let count = 0
+        for (let x of elem) {
+            count += countLength(x)
         }
-        else if (typeof elem === 'string') {
-            out += elem.length
-        }
-        else if (elem.left && elem.right) {
-            out += elem.len
-        }
-        else throw new Error()
+        return count
+    } else if (typeof elem === 'string') {
+        return elem.length
     }
-    go(elem)
-    return out
+    return elem.len
 }
 
-function flatten(elem) {
-    let out = []
-    let go = (elem) => {
-        if (Array.isArray(elem)) {
-            for (let x of elem) {
-                go(x)
-            }
-        }
-        else if (typeof elem === 'string') {
-            out.push(elem)
-        }
-        else {
-            out.push({
-                len: elem.len,
-                left: flatten(elem.left),
-                right: flatten(elem.right)
-            })
-        }
-    }
-    go(elem)
-    return out
-}
-
-function explodeArrows(elem) {
+function explodeArrows(elem: Elem): Elem {
     if (Array.isArray(elem)) {
         return elem.map(explodeArrows)
     }
     if (typeof elem === 'string') {
-        let sections = []
+        let sections: Elem[] = []
         for (let i = 0; i < elem.length; ++i) {
             sections.push(explodeArrowPair(i == 0 ? 'A' : elem[i - 1], elem[i]))
         }
@@ -144,15 +123,38 @@ function explodeArrows(elem) {
     }
     let left = explodeArrows(elem.left)
     let right = explodeArrows(elem.right)
-    let leftLen = minLength(left)
-    let rightLen = minLength(right)
+    let leftLen = countLength(left)
+    let rightLen = countLength(right)
 
     if (leftLen < rightLen) return left
     else if (leftLen > rightLen) return right
     return { left, right, len: leftLen }
 }
 
-function pickBestBranches(elem) {
+function flattenInto(out: Elem[], elem: Elem): void {
+    if (Array.isArray(elem)) {
+        for (let x of elem) {
+            flattenInto(out, x)
+        }
+        return;
+    }
+    if (typeof elem === 'string') {
+        out.push(elem)
+        return;
+    }
+    let left = []
+    let right = []
+    flattenInto(left, elem.left)
+    flattenInto(right, elem.right)
+    out.push({
+        len: elem.len,
+        left: left,
+        right: right,
+    })
+}
+
+function pickBestBranches(elem: Elem): Elem {
+    if (Array.isArray(elem)) throw new Error();
     if (typeof elem === 'string') return elem
 
     let { left, right } = elem
@@ -160,63 +162,41 @@ function pickBestBranches(elem) {
     let ogRight = right
 
     for (;;) {
-        left = flatten(explodeArrows(left))
-        right = flatten(explodeArrows(right))
+        let l = []; flattenInto(l, explodeArrows(left)); left = l
+        let r = []; flattenInto(r, explodeArrows(right)); right = r
 
-        let leftLen = minLength(left)
-        let rightLen = minLength(right)
+        let leftLen = countLength(left)
+        let rightLen = countLength(right)
 
         if (leftLen < rightLen) return ogLeft
         if (leftLen > rightLen) return ogRight
     }
 }
 
-let numberPairToArrows = {}
-
-let numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A']
-for (let a = 0; a < numbers.length; ++a) {
-    for (let b = 0; b < numbers.length; ++b) {
-        numberPairToArrows[`${numbers[a]}${numbers[b]}`] = pickBestBranches(explodeNumberPair(numbers[a], numbers[b]))
+function getArrowExpansion(str: string): string[] {
+    if (str in arrowExpansions) {
+        return arrowExpansions[str]
+    } else {
+        let exploded = explodeArrows(str)
+        if (!Array.isArray(exploded)) throw new Error();
+        let newExpansion: string[] = exploded.map(pickBestBranches) as string[]
+        // console.log(newExpansion)
+        arrowExpansions[str] = newExpansion
+        return newExpansion
     }
 }
 
-let arrowExpansions = {}
-
-for (let k in numberPairToArrows) {
-    let val = numberPairToArrows[k]
-
-    if (!arrowExpansions[val]) {
-        arrowExpansions[val] = explodeArrows(val).map(pickBestBranches)
-    }
-}
-
-for (;;) {
-    let foundANewOne = false
-
-    for (let k in arrowExpansions) {
-        let vals = arrowExpansions[k]
-        for (let val of vals) {
-            if (!arrowExpansions[val]) {
-                foundANewOne = true
-                arrowExpansions[val] = explodeArrows(val).map(pickBestBranches)
-            }
-        }
-    }
-
-    if (!foundANewOne) break
-}
-
-function addToBag(bag, str, count) {
+function addToBag(bag: Bag, str: string, count: number): void {
     if (str in bag) bag[str] += count
     else bag[str] = count
 }
 
-function stepBag(bag) {
+function stepBag(bag: Bag): Bag {
     let newBag = {}
 
     for (let str in bag) {
         let count = bag[str]
-        let expansions = arrowExpansions[str]
+        let expansions = getArrowExpansion(str)
         for (let val of expansions) {
             addToBag(newBag, val, count)
         }
@@ -225,7 +205,7 @@ function stepBag(bag) {
     return newBag
 }
 
-function countBag(bag) {
+function countBag(bag: Bag): number {
     let ret = 0
     for (let str in bag) {
         let count = bag[str]
@@ -234,12 +214,14 @@ function countBag(bag) {
     return ret
 }
 
-function solve(numbers, depth) {
+function solve(numbers: string, depth: number): number {
     let bag = {}
 
     numbers = 'A' + numbers
     for (let i = 0; i < numbers.length - 1; ++i) {
-        addToBag(bag, numberPairToArrows[numbers.substr(i, 2)], 1)
+        let init = pickBestBranches(explodeNumberPair(numbers[i], numbers[i + 1])) as string
+        // console.log(init)
+        addToBag(bag, init, 1)
     }
 
     for (let i = 0; i < depth; ++i) {
