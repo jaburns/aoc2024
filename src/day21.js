@@ -1,6 +1,10 @@
 #!/usr/bin/env node
-const fs = require('fs')
-// const input = fs.readFileSync('inputs/day21-test.txt')
+
+function hrTime() {
+    let t = process.hrtime()
+    return Math.floor(t[0] * 1000000 + t[1] / 1000)
+}
+let start = hrTime()
 
 let arrowCoords = {
     '^': [1,0],
@@ -47,8 +51,6 @@ function explodeArrowPair(a, b) {
         return hPart + vPart + 'A'
     }
 
-    // return vPart + hPart + 'A'
-
     return {
         len: Math.abs(dx) + Math.abs(dy) + 1,
         left: vPart + hPart + 'A',
@@ -78,8 +80,6 @@ function explodeNumberPair(a, b) {
     if ((b == '0' || b == 'A') && (a == '1' || a == '4' || a == '7')) {
         return hPart + vPart + 'A'
     }
-
-    // return hPart + vPart + 'A'
 
     return {
         len: Math.abs(dx) + Math.abs(dy) + 1,
@@ -152,23 +152,124 @@ function explodeArrows(elem) {
     return { left, right, len: leftLen }
 }
 
-function step(elem) {
-    return flatten(explodeArrows(elem))
+function pickBestBranches(elem) {
+    if (typeof elem === 'string') return elem
+
+    let { left, right } = elem
+    let ogLeft = left
+    let ogRight = right
+
+    for (;;) {
+        left = flatten(explodeArrows(left))
+        right = flatten(explodeArrows(right))
+
+        let leftLen = minLength(left)
+        let rightLen = minLength(right)
+
+        if (leftLen < rightLen) return ogLeft
+        if (leftLen > rightLen) return ogRight
+    }
 }
 
-function explodeNumbers(str) {
-    let sections = []
-    for (let i = 0; i < str.length; ++i) {
-        sections.push(explodeNumberPair(i == 0 ? 'A' : str[i - 1], str[i]))
-    }
+let numberPairToArrows = {}
 
-    for (let i = 0; i < 5; ++i) {
-        console.log("Step", i)
-        sections = step(sections)
+let numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A']
+for (let a = 0; a < numbers.length; ++a) {
+    for (let b = 0; b < numbers.length; ++b) {
+        numberPairToArrows[`${numbers[a]}${numbers[b]}`] = pickBestBranches(explodeNumberPair(numbers[a], numbers[b]))
     }
-
-    console.log(JSON.stringify(sections))
-    console.log(minLength(sections))
 }
 
-explodeNumbers('179A')
+let arrowExpansions = {}
+
+for (let k in numberPairToArrows) {
+    let val = numberPairToArrows[k]
+
+    if (!arrowExpansions[val]) {
+        arrowExpansions[val] = explodeArrows(val).map(pickBestBranches)
+    }
+}
+
+for (;;) {
+    let foundANewOne = false
+
+    for (let k in arrowExpansions) {
+        let vals = arrowExpansions[k]
+        for (let val of vals) {
+            if (!arrowExpansions[val]) {
+                foundANewOne = true
+                arrowExpansions[val] = explodeArrows(val).map(pickBestBranches)
+            }
+        }
+    }
+
+    if (!foundANewOne) break
+}
+
+function addToBag(bag, str, count) {
+    if (str in bag) bag[str] += count
+    else bag[str] = count
+}
+
+function stepBag(bag) {
+    let newBag = {}
+
+    for (let str in bag) {
+        let count = bag[str]
+        let expansions = arrowExpansions[str]
+        for (let val of expansions) {
+            addToBag(newBag, val, count)
+        }
+    }
+
+    return newBag
+}
+
+function countBag(bag) {
+    let ret = 0
+    for (let str in bag) {
+        let count = bag[str]
+        ret += str.length * count
+    }
+    return ret
+}
+
+function solve(numbers, depth) {
+    let bag = {}
+
+    numbers = 'A' + numbers
+    for (let i = 0; i < numbers.length - 1; ++i) {
+        addToBag(bag, numberPairToArrows[numbers.substr(i, 2)], 1)
+    }
+
+    for (let i = 0; i < depth; ++i) {
+        bag = stepBag(bag)
+    }
+
+    return countBag(bag)
+}
+
+let part1 =
+    solve('459A', 2) * 459 +
+    solve('671A', 2) * 671 +
+    solve('846A', 2) * 846 +
+    solve('285A', 2) * 285 +
+    solve('083A', 2) * 83
+
+let part2 =
+    solve('459A', 25) * 459 +
+    solve('671A', 25) * 671 +
+    solve('846A', 25) * 846 +
+    solve('285A', 25) * 285 +
+    solve('083A', 25) * 83
+
+let time = hrTime() - start;
+
+console.log('')
+console.log('-- DAY 21 (javascript) --')
+console.log(`   Time: ${time} μs`)
+console.log(` Part 1: ${part1}`)
+console.log(` Part 2: ${part2}`)
+console.log('')
+// Part 1: 169390
+// Part 2: 210686850124870
