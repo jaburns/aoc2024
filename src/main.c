@@ -1,8 +1,8 @@
 // -------------------------------
-#define DEBUG         1
+#define DEBUG         0
 #define BIGBOY_INPUTS 0
-#define TEST_INPUTS   1
-#define DAY_NUMBER    24
+#define TEST_INPUTS   0
+#define DAY_NUMBER    17
 #define HIDE_SOLUTION 0
 // -------------------------------
 
@@ -76,10 +76,9 @@ internal void print_time(Arena* arena, u64 nanos) {
     printf("%s %s", u64_print_with_commas(arena, nanos), units);
 }
 
-i32 main(int argc, char** argv) {
+void run_individual() {
     scratch_thread_local_create(&GLOBAL_ALLOCATOR, ALLOCATION_SIZE);
     ArenaTemp scratch = scratch_acquire(NULL, 0);
-
     timing_global_init();
     Arena arena = arena_create(&GLOBAL_ALLOCATOR, ALLOCATION_SIZE);
 
@@ -112,6 +111,7 @@ i32 main(int argc, char** argv) {
 #endif
     printf("   Time: ");
     print_time(&arena, timing_ticks_to_nanos(total_time) / (Max(1, ITERATIONS / 2)));
+    if (result.has_manual_component) printf(" + manual labor");
     printf("\n");
     printf(" Part 1: ");
 #if HIDE_SOLUTION
@@ -127,6 +127,78 @@ i32 main(int argc, char** argv) {
     print_result_part(&result.parts[1]);
 #endif
     printf("\n\n");
+}
 
+volatile u64 optimizer_sink;
+
+void run_summary(void) {
+    scratch_thread_local_create(&GLOBAL_ALLOCATOR, ALLOCATION_SIZE);
+    ArenaTemp scratch = scratch_acquire(NULL, 0);
+    timing_global_init();
+    Arena arena = arena_create(&GLOBAL_ALLOCATOR, ALLOCATION_SIZE);
+
+    u64 total_total_time = 0;
+
+#define RunDay(day_number)                                                                                            \
+    do {                                                                                                              \
+        Str       input = str_read_file(&arena, "inputs/day" DayStr(day_number) "-" INPUT_TYPE ".txt");               \
+        DayResult result;                                                                                             \
+        u64       total_time = 0;                                                                                     \
+        for (u32 i = 0; i < ITERATIONS; ++i) {                                                                        \
+            ArenaMark mark  = arena_mark(&arena);                                                                     \
+            u64       start = timing_get_ticks();                                                                     \
+            result          = DayFn(day_number)(&arena, input);                                                       \
+            u64 delta       = timing_get_ticks() - start;                                                             \
+            if (i == 0) {                                                                                             \
+                if (result.parts[0].is_str) result.parts[0].as_str = str_copy(scratch.arena, result.parts[0].as_str); \
+                if (result.parts[1].is_str) result.parts[1].as_str = str_copy(scratch.arena, result.parts[1].as_str); \
+            }                                                                                                         \
+            if (i >= ITERATIONS / 2) total_time += delta;                                                             \
+            arena_restore(&arena, mark);                                                                              \
+        }                                                                                                             \
+        optimizer_sink    = u64_wrapped_add(optimizer_sink, result.parts[0].as_i64);                                  \
+        optimizer_sink    = u64_wrapped_add(optimizer_sink, result.parts[1].as_i64);                                  \
+        total_total_time += total_time;                                                                               \
+        printf("  Day %02d : ", day_number);                                                                          \
+        print_time(&arena, timing_ticks_to_nanos(total_time) / (Max(1, ITERATIONS / 2)));                             \
+        if (result.has_manual_component) printf(" + manual labor");                                                   \
+        printf("\n");                                                                                                 \
+    } while (0)
+
+    printf("\n");
+    RunDay(1);
+    RunDay(2);
+    RunDay(3);
+    RunDay(4);
+    RunDay(5);
+    RunDay(6);
+    RunDay(7);
+    RunDay(8);
+    RunDay(9);
+    RunDay(10);
+    RunDay(11);
+    RunDay(12);
+    RunDay(13);
+    RunDay(14);
+    RunDay(15);
+    RunDay(16);
+    RunDay(17);
+    RunDay(18);
+    RunDay(19);
+    RunDay(20);
+    RunDay(21);
+    RunDay(22);
+    RunDay(23);
+    RunDay(24);
+    RunDay(25);
+    printf("   Total : ");
+    print_time(&arena, timing_ticks_to_nanos(total_total_time));
+    printf("\n\n");
+
+#undef RunDay
+}
+
+i32 main(int argc, char** argv) {
+    run_summary();
     return 0;
 }

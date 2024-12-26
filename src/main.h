@@ -12,6 +12,7 @@ structdef(DayResultPart) {
 
 structdef(DayResult) {
     DayResultPart parts[2];
+    bool          has_manual_component;
 };
 
 typedef DayResult (*DayFn)(Arena* arena, Str input);

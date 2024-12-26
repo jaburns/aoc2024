@@ -2,12 +2,11 @@
 
 #define DAY17_OUTPUT_MAX_SIZE Kb(1)
 
+#if 0
 internal void day17_run_vm(char* program, usize max_ip, u64 a_register, char* output) {
 #define Literal(x) (x - '0')
 #define Combo(x)   (x <= '3' ? (x - '0') : registers[x - '4'])
-
     u64 registers[3] = {a_register, 0, 0};
-
     u64 ip = 0;
     while (ip <= max_ip) {
         char operand = program[2 * ip + 2];
@@ -51,10 +50,10 @@ internal void day17_run_vm(char* program, usize max_ip, u64 a_register, char* ou
         ip += 2;
     }
     *--output = 0;
-
 #undef Literal
 #undef Combo
 }
+#endif
 
 internal u8 day17_cypher(u64 a) {
     u64 b, c;
@@ -98,18 +97,16 @@ internal u8 day17_count_matches(u64 total, u8 digit) {
     return count;
 }
 
-readonly_global u8 DAY17_TO_ENCODE[16] = {0, 3, 3, 0, 5, 5, 0, 4, 5, 1, 5, 7, 1, 1, 4, 2};
+internal u64 day17_try_encode(u64 total, usize idx, Slice_u8 target) {
+    if (idx == target.count) return total;
 
-internal u64 day17_try_encode(u64 total, usize idx) {
-    if (idx == 16) return total;
-
-    u8 matches = day17_count_matches(total, DAY17_TO_ENCODE[idx]);
+    u8 matches = day17_count_matches(total, target.items[idx]);
 
     for (u8 m = 0; m < matches; ++m) {
-        u64 new_total = day17_append_digit(total, DAY17_TO_ENCODE[idx], m);
+        u64 new_total = day17_append_digit(total, target.items[idx], m);
         if (new_total == 0) continue;
 
-        u64 result = day17_try_encode(new_total, idx + 1);
+        u64 result = day17_try_encode(new_total, idx + 1, target);
         if (result != 0) return result;
     }
 
@@ -119,26 +116,27 @@ internal u64 day17_try_encode(u64 total, usize idx) {
 internal DayResult day17(Arena* arena, Str input) {
     StrSplitIter lines_iter       = StrSplitIter_new('\n', input);
     u64          part1_register_a = str_parse_u64(str_trim(str_after_last_index(':', lines_iter.item)), 10);
-    // StrSplitIter_next(&lines_iter);
-    // StrSplitIter_next(&lines_iter);
-    // StrSplitIter_next(&lines_iter);
-    // StrSplitIter_next(&lines_iter);
+    StrSplitIter_next(&lines_iter);
+    StrSplitIter_next(&lines_iter);
+    StrSplitIter_next(&lines_iter);
+    StrSplitIter_next(&lines_iter);
 
-    // Str program_str = str_trim(str_after_last_index(':', lines_iter.item));
-    // // u64 max_ip      = program_str.count / 2;
+    Str    program_str = str_trim(str_after_last_index(':', lines_iter.item));
+    Vec_u8 program     = VecAlloc(u8, arena, 32);
+    foreach (StrSplitIter, elems_it, ',', program_str) {
+        *VecPush(program) = (u8)str_parse_u32(elems_it.item, 10);
+    }
+    ArrayReverse(u8, program.items, program.count);
 
-    // char* program = str_to_cstr(arena, program_str);
     char* output = arena_alloc(arena, DAY17_OUTPUT_MAX_SIZE);
-
     day17_run_reversed(part1_register_a, output);
     Str part1 = str_copy(arena, str_from_cstr(output));
+    u64 part2 = day17_try_encode(0, 0, program.slice);
 
-    u64 part2 = day17_try_encode(0, 0);
-    // day17_run_reversed(part2, output);
-
-    DayResult result       = {0};
-    result.parts[0].is_str = true;
-    result.parts[0].as_str = part1;
-    result.parts[1].as_i64 = part2;
+    DayResult result            = {0};
+    result.parts[0].is_str      = true;
+    result.parts[0].as_str      = part1;
+    result.parts[1].as_i64      = part2;
+    result.has_manual_component = true;
     return result;
 }
